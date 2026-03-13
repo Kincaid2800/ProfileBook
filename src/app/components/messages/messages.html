@@ -1,0 +1,71 @@
+<div class="container mt-4">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 rounded">
+    <div class="container-fluid">
+      <a class="navbar-brand">💬 Messages</a>
+      <button class="btn btn-light" (click)="goHome()">Back to Home</button>
+    </div>
+  </nav>
+
+  <div class="row">
+    <!-- Search Users -->
+    <div class="col-md-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h6>Find a User</h6>
+          <div class="input-group">
+            <input type="text" class="form-control"
+              [(ngModel)]="searchQuery"
+              placeholder="Search username..."/>
+            <button class="btn btn-primary" (click)="searchUsers()">🔍</button>
+          </div>
+          <div *ngFor="let user of searchResults" class="mt-2">
+            <button class="btn btn-outline-primary btn-sm w-100"
+              (click)="selectUser(user)">
+              {{ user.username }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div *ngIf="!selectedUser" class="text-center text-muted mt-4">
+            <h5>Select a user to start chatting</h5>
+          </div>
+
+          <div *ngIf="selectedUser">
+            <h5>Chat with {{ selectedUser.username }}</h5>
+            <hr/>
+
+            <div class="chat-box mb-3"
+              style="height:350px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:8px;">
+              <div *ngFor="let msg of messages" class="mb-2">
+                <strong class="text-primary">{{ msg.sender }}:</strong>
+                {{ msg.messageContent }}
+                <small class="text-muted ms-2">
+                  {{ msg.timeStamp | date:'shortTime' }}
+                </small>
+              </div>
+              <div *ngIf="messages.length === 0" class="text-muted text-center">
+                No messages yet. Say hello! 👋
+              </div>
+            </div>
+
+            <div class="input-group">
+              <input type="text" class="form-control"
+                [(ngModel)]="newMessage"
+                placeholder="Type a message..."
+                (keyup.enter)="sendMessage()"/>
+              <button class="btn btn-primary" (click)="sendMessage()">
+                Send 📤
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

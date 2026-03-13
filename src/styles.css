@@ -1,1 +1,80 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f0f2f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+  border-radius: 0 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.card {
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.btn {
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1877f2, #0d6efd) !important;
+  border: none !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff4d4d, #dc3545) !important;
+  border: none !important;
+}
+
+.form-control {
+  border-radius: 8px !important;
+  border: 1.5px solid #ddd !important;
+  padding: 10px 14px !important;
+}
+
+.form-control:focus {
+  border-color: #1877f2 !important;
+  box-shadow: 0 0 0 3px rgba(24,119,242,0.15) !important;
+}
+
+.badge {
+  border-radius: 20px !important;
+  padding: 6px 12px !important;
+}
+
+/* Navbar */
+.navbar {
+  padding: 12px 20px !important;
+}
+
+.navbar-brand {
+  font-size: 1.4rem !important;
+  font-weight: 700 !important;
+}
+
+/* Chat box */
+.chat-box::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-box::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.chat-box::-webkit-scrollbar-thumb {
+  background: #1877f2;
+  border-radius: 10px;
+}

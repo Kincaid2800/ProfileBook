@@ -1,0 +1,50 @@
+<div style="background:#f0f2f5; min-height:100vh;">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+      <a class="navbar-brand">🔍 Search Users</a>
+      <button class="btn btn-light btn-sm" (click)="goHome()">Back to Home</button>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width:680px;">
+    <div class="card p-3 mb-4">
+      <div class="input-group">
+        <input type="text" class="form-control"
+          [(ngModel)]="searchQuery"
+          placeholder="Search for users..."
+          (keyup.enter)="searchUsers()"/>
+        <button class="btn btn-primary" (click)="searchUsers()">
+          🔍 Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div *ngFor="let user of searchResults" class="card mb-3 p-3">
+      <div class="d-flex align-items-center">
+        <div class="rounded-circle bg-primary text-white d-flex
+          align-items-center justify-content-center me-3"
+          style="width:50px; height:50px; font-size:1.3rem; font-weight:700;">
+          {{ user.username.charAt(0).toUpperCase() }}
+        </div>
+        <div class="flex-grow-1">
+          <strong>{{ user.username }}</strong>
+          <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
+        </div>
+        <button class="btn btn-outline-warning btn-sm"
+          (click)="reportUser(user.username, user.userId)">
+          🚨 Report
+        </button>
+        <button class="btn btn-outline-primary btn-sm ms-2"
+          (click)="messageUser(user.userId)">
+          💬 Message
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="searchResults.length === 0 && searched"
+      class="text-center text-muted mt-4">
+      <h5>No users found 😕</h5>
+    </div>
+  </div>
+</div>

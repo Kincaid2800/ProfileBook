@@ -1,0 +1,119 @@
+<div style="background:#f0f2f5; min-height:100vh;">
+  <!-- Navbar -->
+   <button class="btn btn-light btn-sm me-2" (click)="goToSearch()">🔍 Search</button>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+      <a class="navbar-brand">📖 ProfileBook</a>
+      <div class="d-flex align-items-center">
+        <span class="text-white me-3">Hello, <strong>{{ username }}</strong></span>
+        <button class="btn btn-light btn-sm me-2" (click)="goToMessages()">💬 Messages</button>
+        <button class="btn btn-light btn-sm me-2" (click)="goToProfile()">👤 Profile</button>
+        <button class="btn btn-danger btn-sm" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width:680px;">
+    <!-- Create Post -->
+<div class="card create-post-card p-3 mb-4">
+  <div class="d-flex align-items-center mb-2">
+    <div class="avatar me-2">{{ username.charAt(0).toUpperCase() }}</div>
+    <textarea class="form-control" rows="2"
+      [(ngModel)]="newPostContent"
+      placeholder="What's on your mind, {{ username }}?"></textarea>
+  </div>
+
+  <!-- File Preview -->
+  <div *ngIf="filePreview" class="mb-2 position-relative">
+    <img *ngIf="fileType === 'image'" [src]="filePreview"
+      class="img-fluid rounded" style="max-height:200px;"/>
+    <video *ngIf="fileType === 'video'" [src]="filePreview"
+      class="w-100 rounded" style="max-height:200px;" controls></video>
+    <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1"
+      (click)="removeFile()">✕</button>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <label class="btn btn-outline-secondary btn-sm me-2" style="cursor:pointer;">
+        🖼️ Photo
+        <input type="file" hidden accept="image/*" (change)="onFileSelected($event)"/>
+      </label>
+      <label class="btn btn-outline-secondary btn-sm" style="cursor:pointer;">
+        🎥 Video
+        <input type="file" hidden accept="video/*" (change)="onFileSelected($event)"/>
+      </label>
+    </div>
+    <button class="btn btn-primary px-4" (click)="createPost()">
+      Post 📝
+    </button>
+  </div>
+
+  <div *ngIf="postMessage" class="alert alert-info mt-2 mb-0 py-2">
+    {{ postMessage }}
+  </div>
+</div>
+    <!-- Posts Feed -->
+    <div *ngFor="let post of posts" class="card post-card p-3">
+      <!-- Post Header -->
+      <div class="post-header">
+        <div class="avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
+        <div>
+          <strong>{{ post.username }}</strong>
+          <div class="text-muted" style="font-size:0.8rem;">
+            {{ post.createdAt | date:'medium' }}
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Post Content -->
+    <p class="mb-2">{{ post.content }}</p>
+    <img *ngIf="post.postImage && !post.postImage.includes('.mp4')"
+     [src]="'https://localhost:7193' + post.postImage"
+     class="img-fluid rounded mb-2" style="max-height:400px;"/>
+    <video *ngIf="post.postImage && post.postImage.includes('.mp4')"
+     [src]="'https://localhost:7193' + post.postImage"
+     class="w-100 rounded mb-2" controls style="max-height:400px;"></video>
+
+      <!-- Post Actions -->
+    <div class="post-actions">
+    <button class="btn btn-outline-danger btn-sm"
+    (click)="likePost(post.postId)">
+    ❤️ {{ post.likesCount }} Likes
+  </button>
+  <button class="btn btn-outline-primary btn-sm"
+    (click)="post.showComments = !post.showComments">
+    💬 {{ post.comments.length }} Comments
+  </button>
+  <button class="btn btn-outline-warning btn-sm ms-auto"
+    (click)="reportUser(post.username, post.userId)">
+    🚨 Report
+  </button>
+</div>
+
+      <!-- Comments Section -->
+      <div *ngIf="post.showComments" class="mt-2">
+        <div *ngFor="let comment of post.comments" class="comment-item">
+          <strong class="text-primary">{{ comment.username }}</strong>
+          <span class="ms-2">{{ comment.content }}</span>
+        </div>
+        <div class="input-group mt-2">
+          <input type="text" class="form-control form-control-sm"
+            [(ngModel)]="commentTexts[post.postId]"
+            placeholder="Write a comment..."/>
+          <button class="btn btn-primary btn-sm"
+            (click)="addComment(post.postId, commentTexts[post.postId])">
+            Post
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="posts.length === 0" class="text-center text-muted mt-5">
+      <h4>No posts yet 😴</h4>
+      <p>Be the first to post something!</p>
+    </div>
+  </div>
+</div>

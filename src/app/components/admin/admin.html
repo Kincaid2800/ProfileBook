@@ -1,0 +1,147 @@
+<div style="background:#f0f2f5; min-height:100vh;">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+      <a class="navbar-brand">⚙️ Admin Panel</a>
+      <div class="d-flex align-items-center">
+        <span class="text-white me-3">Welcome, <strong>Admin</strong></span>
+        <button class="btn btn-danger btn-sm" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Stats Row -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="stat-card" style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
+          <h3>{{ users.length }}</h3>
+          <p class="mb-0">Total Users</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+          <h3>{{ pendingPosts.length }}</h3>
+          <p class="mb-0">Pending Posts</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <h3>{{ reports.length }}</h3>
+          <p class="mb-0">Reports</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card p-0 mb-4">
+      <div class="d-flex border-bottom px-3">
+        <button class="tab-btn" [class.active]="activeTab === 'posts'"
+          (click)="activeTab = 'posts'">
+          📝 Pending Posts
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'users'"
+          (click)="activeTab = 'users'">
+          👥 Users
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'reports'"
+          (click)="activeTab = 'reports'">
+          🚨 Reports
+        </button>
+      </div>
+
+      <div class="p-3">
+        <!-- Pending Posts -->
+        <div *ngIf="activeTab === 'posts'">
+          <div *ngFor="let post of pendingPosts" class="card mb-3 p-3">
+            <div class="d-flex align-items-center mb-2">
+              <div class="user-avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
+              <div>
+                <strong>{{ post.username }}</strong>
+                <div class="text-muted" style="font-size:0.8rem;">
+                  {{ post.createdAt | date:'medium' }}
+                </div>
+              </div>
+              <span class="pending-badge ms-auto">Pending</span>
+            </div>
+            <p class="mb-2">{{ post.content }}</p>
+            <button class="btn btn-success btn-sm"
+              (click)="approvePost(post.postId)">
+              ✅ Approve Post
+            </button>
+          </div>
+          <div *ngIf="pendingPosts.length === 0"
+            class="text-center text-muted py-4">
+            <h5>No pending posts! 🎉</h5>
+          </div>
+        </div>
+
+        <!-- Users -->
+<div *ngIf="activeTab === 'users'">
+  <div *ngFor="let user of users" class="user-row">
+    <div class="user-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+    <div class="flex-grow-1">
+      <div *ngIf="editingUserId !== user.userId">
+        <strong>{{ user.username }}</strong>
+        <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
+      </div>
+      <div *ngIf="editingUserId === user.userId">
+        <input type="text" class="form-control form-control-sm mb-1"
+          [(ngModel)]="editUsername" placeholder="Username"/>
+        <input type="email" class="form-control form-control-sm"
+          [(ngModel)]="editEmail" placeholder="Email"/>
+      </div>
+    </div>
+    <span class="badge me-2"
+      [style.background]="user.role === 'Admin' ? '#dc3545' : '#1877f2'">
+      {{ user.role }}
+    </span>
+    <div *ngIf="editingUserId !== user.userId">
+      <button class="btn btn-outline-primary btn-sm me-1"
+        (click)="startEdit(user)">
+        ✏️
+      </button>
+      <button class="btn btn-outline-danger btn-sm"
+        (click)="deleteUser(user.userId)">
+        🗑️
+      </button>
+    </div>
+    <div *ngIf="editingUserId === user.userId">
+      <button class="btn btn-success btn-sm me-1"
+        (click)="saveEdit(user.userId)">
+        ✅
+      </button>
+      <button class="btn btn-secondary btn-sm"
+        (click)="cancelEdit()">
+        ✕
+      </button>
+    </div>
+  </div>
+</div>
+
+        <!-- Reports -->
+        <div *ngIf="activeTab === 'reports'">
+          <div *ngFor="let report of reports" class="card mb-3 p-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="badge bg-danger">Report</span>
+              <small class="text-muted">{{ report.timeStamp | date:'medium' }}</small>
+            </div>
+            <p class="mb-1">
+              <strong>Reported User:</strong> {{ report.reportedUser }}
+            </p>
+            <p class="mb-1">
+              <strong>Reported By:</strong> {{ report.reportingUser }}
+            </p>
+            <p class="mb-0">
+              <strong>Reason:</strong> {{ report.reason }}
+            </p>
+          </div>
+          <div *ngIf="reports.length === 0"
+            class="text-center text-muted py-4">
+            <h5>No reports yet! ✅</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
