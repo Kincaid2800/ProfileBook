@@ -48,6 +48,10 @@
           (click)="activeTab = 'reports'">
           🚨 Reports
         </button>
+        <button class="tab-btn" [class.active]="activeTab === 'groups'"
+          (click)="activeTab = 'groups'">
+          👥 Groups
+        </button>
       </div>
 
       <div class="p-3">
@@ -77,47 +81,47 @@
         </div>
 
         <!-- Users -->
-<div *ngIf="activeTab === 'users'">
-  <div *ngFor="let user of users" class="user-row">
-    <div class="user-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
-    <div class="flex-grow-1">
-      <div *ngIf="editingUserId !== user.userId">
-        <strong>{{ user.username }}</strong>
-        <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
-      </div>
-      <div *ngIf="editingUserId === user.userId">
-        <input type="text" class="form-control form-control-sm mb-1"
-          [(ngModel)]="editUsername" placeholder="Username"/>
-        <input type="email" class="form-control form-control-sm"
-          [(ngModel)]="editEmail" placeholder="Email"/>
-      </div>
-    </div>
-    <span class="badge me-2"
-      [style.background]="user.role === 'Admin' ? '#dc3545' : '#1877f2'">
-      {{ user.role }}
-    </span>
-    <div *ngIf="editingUserId !== user.userId">
-      <button class="btn btn-outline-primary btn-sm me-1"
-        (click)="startEdit(user)">
-        ✏️
-      </button>
-      <button class="btn btn-outline-danger btn-sm"
-        (click)="deleteUser(user.userId)">
-        🗑️
-      </button>
-    </div>
-    <div *ngIf="editingUserId === user.userId">
-      <button class="btn btn-success btn-sm me-1"
-        (click)="saveEdit(user.userId)">
-        ✅
-      </button>
-      <button class="btn btn-secondary btn-sm"
-        (click)="cancelEdit()">
-        ✕
-      </button>
-    </div>
-  </div>
-</div>
+        <div *ngIf="activeTab === 'users'">
+          <div *ngFor="let user of users" class="user-row">
+            <div class="user-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+            <div class="flex-grow-1">
+              <div *ngIf="editingUserId !== user.userId">
+                <strong>{{ user.username }}</strong>
+                <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
+              </div>
+              <div *ngIf="editingUserId === user.userId">
+                <input type="text" class="form-control form-control-sm mb-1"
+                  [(ngModel)]="editUsername" placeholder="Username"/>
+                <input type="email" class="form-control form-control-sm"
+                  [(ngModel)]="editEmail" placeholder="Email"/>
+              </div>
+            </div>
+            <span class="badge me-2"
+              [style.background]="user.role === 'Admin' ? '#dc3545' : '#1877f2'">
+              {{ user.role }}
+            </span>
+            <div *ngIf="editingUserId !== user.userId">
+              <button class="btn btn-outline-primary btn-sm me-1"
+                (click)="startEdit(user)">
+                ✏️
+              </button>
+              <button class="btn btn-outline-danger btn-sm"
+                (click)="deleteUser(user.userId)">
+                🗑️
+              </button>
+            </div>
+            <div *ngIf="editingUserId === user.userId">
+              <button class="btn btn-success btn-sm me-1"
+                (click)="saveEdit(user.userId)">
+                ✅
+              </button>
+              <button class="btn btn-secondary btn-sm"
+                (click)="cancelEdit()">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Reports -->
         <div *ngIf="activeTab === 'reports'">
@@ -141,6 +145,36 @@
             <h5>No reports yet! ✅</h5>
           </div>
         </div>
+
+        <!-- Groups -->
+        <div *ngIf="activeTab === 'groups'">
+          <div class="mb-3">
+            <input type="text" class="form-control mb-2"
+              [(ngModel)]="newGroupName" placeholder="Group name"/>
+            <input type="text" class="form-control mb-2"
+              [(ngModel)]="newGroupDescription" placeholder="Group description"/>
+            <button class="btn btn-primary" (click)="createGroup()">
+              ➕ Create Group
+            </button>
+          </div>
+          <hr/>
+          <div *ngFor="let group of groups" class="user-row">
+            <div class="user-avatar">👥</div>
+            <div class="flex-grow-1">
+              <strong>{{ group.name }}</strong>
+              <div class="text-muted" style="font-size:0.85rem;">{{ group.description }}</div>
+              <small>{{ group.memberCount }} members</small>
+            </div>
+            <button class="btn btn-outline-danger btn-sm"
+              (click)="deleteGroup(group.groupId)">
+              🗑️
+            </button>
+          </div>
+          <div *ngIf="groups.length === 0" class="text-center text-muted py-4">
+            <h5>No groups yet! Create one above ⬆️</h5>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

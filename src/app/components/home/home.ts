@@ -117,6 +117,9 @@ export class HomeComponent implements OnInit {
   goToProfile() {
     this.router.navigate(['/profile']);
   }
+  goToGroups() {
+  this.router.navigate(['/groups']);
+}
 
   logout() {
     this.authService.logout();
