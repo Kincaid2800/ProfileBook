@@ -1,80 +1,78 @@
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  background-color: #f0f2f5;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.navbar {
-  border-radius: 0 !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.card {
-  border: none !important;
-  border-radius: 12px !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
-  transition: transform 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-}
-
-.btn {
-  border-radius: 8px !important;
-  font-weight: 500;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #1877f2, #0d6efd) !important;
-  border: none !important;
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #ff4d4d, #dc3545) !important;
-  border: none !important;
-}
-
-.form-control {
-  border-radius: 8px !important;
-  border: 1.5px solid #ddd !important;
-  padding: 10px 14px !important;
-}
-
-.form-control:focus {
-  border-color: #1877f2 !important;
-  box-shadow: 0 0 0 3px rgba(24,119,242,0.15) !important;
-}
-
-.badge {
-  border-radius: 20px !important;
-  padding: 6px 12px !important;
-}
-
-/* Navbar */
-.navbar {
-  padding: 12px 20px !important;
+/* Navbar responsive */
+.navbar .d-flex {
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .navbar-brand {
-  font-size: 1.4rem !important;
-  font-weight: 700 !important;
+  font-size: 1.2rem;
+  font-weight: 700;
 }
 
-/* Chat box */
-.chat-box::-webkit-scrollbar {
-  width: 6px;
+/* Buttons smaller on mobile */
+@media (max-width: 576px) {
+  .navbar .btn {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+  }
+
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .stat-card {
+    margin-bottom: 12px;
+  }
+
+  .stat-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  .post-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .post-actions .btn {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+  }
+
+  .user-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  h4, h5 {
+    font-size: 1rem;
+  }
 }
-.chat-box::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-.chat-box::-webkit-scrollbar-thumb {
-  background: #1877f2;
-  border-radius: 10px;
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 100% !important;
+  }
+
+  .row .col-md-4 {
+    margin-bottom: 12px;
+  }
 }

@@ -1,36 +1,47 @@
-<div class="container mt-4">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 rounded">
-    <div class="container-fluid">
+<div style="background:#f0f2f5; min-height:100vh;">
+  <nav class="navbar navbar-dark bg-primary mb-4">
+    <div class="container">
       <a class="navbar-brand">👤 My Profile</a>
-      <button class="btn btn-light" (click)="goHome()">Back to Home</button>
+      <button class="btn btn-light btn-sm" (click)="goHome()">Back to Home</button>
     </div>
   </nav>
 
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card shadow text-center p-4">
-        <div class="mb-3">
-          <div class="rounded-circle bg-primary text-white d-inline-flex
-            align-items-center justify-content-center"
-            style="width:80px; height:80px; font-size:2rem;">
-            {{ username.charAt(0).toUpperCase() }}
-          </div>
+  <div class="container" style="max-width:500px;">
+    <div class="card p-4 text-center">
+
+      <!-- Profile Picture -->
+      <div class="mb-3 mx-auto">
+        <img *ngIf="profileImage"
+          [src]="'https://localhost:7193' + profileImage"
+          class="rounded-circle"
+          style="width:120px; height:120px; object-fit:cover; border:4px solid #1877f2;"/>
+        <div *ngIf="!profileImage"
+          class="rounded-circle bg-primary text-white d-flex
+          align-items-center justify-content-center mx-auto"
+          style="width:120px; height:120px; font-size:3rem; font-weight:700;">
+          {{ username ? username.charAt(0).toUpperCase() : '?' }}
         </div>
-        <h3>{{ username }}</h3>
-        <p class="text-muted">{{ email }}</p>
-        <span class="badge bg-primary">{{ role }}</span>
-        <hr/>
-        <div class="row text-center mt-2">
-          <div class="col">
-            <h5>{{ postCount }}</h5>
-            <small class="text-muted">Posts</small>
-          </div>
-        </div>
-        <hr/>
-        <button class="btn btn-danger w-100 mt-2" (click)="logout()">
-          Logout
-        </button>
       </div>
+
+      <!-- Upload Button -->
+      <div class="mb-3">
+        <label class="btn btn-outline-primary btn-sm" style="cursor:pointer;">
+          📷 Change Photo
+          <input type="file" hidden accept="image/*"
+            (change)="onProfilePicSelected($event)"/>
+        </label>
+        <div *ngIf="uploadMessage" class="text-success mt-1">{{ uploadMessage }}</div>
+      </div>
+
+      <h4 class="fw-bold mb-1">{{ username || 'Loading...' }}</h4>
+      <p class="text-muted mb-1">{{ email }}</p>
+      <span class="badge mb-3" style="background:#1877f2;">{{ role }}</span>
+      <div class="text-muted mb-3" style="font-size:0.85rem;">
+        Joined: {{ joinedAt | date:'mediumDate' }}
+      </div>
+
+      <hr/>
+      <button class="btn btn-danger w-100" (click)="logout()">Logout</button>
     </div>
   </div>
 </div>

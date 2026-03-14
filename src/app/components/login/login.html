@@ -1,36 +1,34 @@
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card shadow">
-        <div class="card-body p-4">
-          <h2 class="text-center mb-4">Login to ProfileBook</h2>
+<div class="min-vh-100 d-flex align-items-center justify-content-center"
+  style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
+  <div class="card shadow p-4 w-100" style="max-width:420px; margin:16px;">
+    <div class="text-center mb-4">
+      <h2 style="color:#1877f2; font-weight:800;">📖 ProfileBook</h2>
+      <p class="text-muted">Connect with friends and the world</p>
+    </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger">
-            {{ errorMessage }}
-          </div>
+    <div *ngIf="errorMessage" class="alert alert-danger py-2">
+      {{ errorMessage }}
+    </div>
 
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control"
-              [(ngModel)]="email" placeholder="Enter email"/>
-          </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Email</label>
+      <input type="email" class="form-control form-control-lg"
+        [(ngModel)]="email" placeholder="Enter your email"/>
+    </div>
 
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" class="form-control"
-              [(ngModel)]="password" placeholder="Enter password"/>
-          </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Password</label>
+      <input type="password" class="form-control form-control-lg"
+        [(ngModel)]="password" placeholder="Enter your password"/>
+    </div>
 
-          <button class="btn btn-primary w-100" (click)="login()">
-            Login
-          </button>
+    <button class="btn btn-primary btn-lg w-100 mb-3" (click)="login()">
+      Login
+    </button>
 
-          <p class="text-center mt-3">
-            Don't have an account?
-            <a routerLink="/register">Register here</a>
-          </p>
-        </div>
-      </div>
+    <div class="text-center">
+      <span class="text-muted">Don't have an account? </span>
+      <a routerLink="/register" class="text-primary fw-semibold">Register</a>
     </div>
   </div>
 </div>

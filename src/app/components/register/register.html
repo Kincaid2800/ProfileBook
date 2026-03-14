@@ -1,46 +1,44 @@
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card shadow">
-        <div class="card-body p-4">
-          <h2 class="text-center mb-4">Create Account</h2>
+<div class="min-vh-100 d-flex align-items-center justify-content-center"
+  style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
+  <div class="card shadow p-4 w-100" style="max-width:420px; margin:16px;">
+    <div class="text-center mb-4">
+      <h2 style="color:#1877f2; font-weight:800;">📖 ProfileBook</h2>
+      <p class="text-muted">Create your account</p>
+    </div>
 
-          <div *ngIf="errorMessage" class="alert alert-danger">
-            {{ errorMessage }}
-          </div>
+    <div *ngIf="errorMessage" class="alert alert-danger py-2">
+      {{ errorMessage }}
+    </div>
 
-          <div *ngIf="successMessage" class="alert alert-success">
-            {{ successMessage }}
-          </div>
+    <div *ngIf="successMessage" class="alert alert-success py-2">
+      {{ successMessage }}
+    </div>
 
-          <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" class="form-control"
-              [(ngModel)]="username" placeholder="Enter username"/>
-          </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Username</label>
+      <input type="text" class="form-control form-control-lg"
+        [(ngModel)]="username" placeholder="Choose a username"/>
+    </div>
 
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control"
-              [(ngModel)]="email" placeholder="Enter email"/>
-          </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Email</label>
+      <input type="email" class="form-control form-control-lg"
+        [(ngModel)]="email" placeholder="Enter your email"/>
+    </div>
 
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" class="form-control"
-              [(ngModel)]="password" placeholder="Enter password"/>
-          </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Password</label>
+      <input type="password" class="form-control form-control-lg"
+        [(ngModel)]="password" placeholder="Min 6 characters"/>
+    </div>
 
-          <button class="btn btn-success w-100" (click)="register()">
-            Register
-          </button>
+    <button class="btn btn-primary btn-lg w-100 mb-3" (click)="register()">
+      Create Account
+    </button>
 
-          <p class="text-center mt-3">
-            Already have an account?
-            <a routerLink="/login">Login here</a>
-          </p>
-        </div>
-      </div>
+    <div class="text-center">
+      <span class="text-muted">Already have an account? </span>
+      <a routerLink="/login" class="text-primary fw-semibold">Login</a>
     </div>
   </div>
 </div>
