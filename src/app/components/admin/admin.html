@@ -1,177 +1,205 @@
 <div style="background:#f0f2f5; min-height:100vh;">
+
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-      <a class="navbar-brand">⚙️ Admin Panel</a>
-      <div class="d-flex align-items-center">
-        <span class="text-white me-3">Welcome, <strong>Admin</strong></span>
-        <button class="btn btn-danger btn-sm" (click)="logout()">Logout</button>
+  <nav class="navbar admin-navbar mb-4">
+    <div class="container d-flex align-items-center justify-content-between">
+      <span class="navbar-brand text-white mb-0" style="font-size:1.3rem; font-weight:800;">
+        ⚙️ Admin Panel
+      </span>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-white" style="font-size:0.88rem; opacity:0.8;">
+          Logged in as <strong>Admin</strong>
+        </span>
+        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold"
+          (click)="logout()">Logout</button>
       </div>
     </div>
   </nav>
 
   <div class="container">
-    <!-- Stats Row -->
+
+    <!-- Stat Cards -->
     <div class="row mb-4">
-      <div class="col-md-4">
+      <div class="col-md-3 col-6">
         <div class="stat-card" style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
+          <div class="stat-icon">👥</div>
           <h3>{{ users.length }}</h3>
-          <p class="mb-0">Total Users</p>
+          <p>Total Users</p>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3 col-6">
         <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706);">
+          <div class="stat-icon">📝</div>
           <h3>{{ pendingPosts.length }}</h3>
-          <p class="mb-0">Pending Posts</p>
+          <p>Pending Posts</p>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3 col-6">
         <div class="stat-card" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <div class="stat-icon">🚨</div>
           <h3>{{ reports.length }}</h3>
-          <p class="mb-0">Reports</p>
+          <p>Reports</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">
+          <div class="stat-icon">👥</div>
+          <h3>{{ groups.length }}</h3>
+          <p>Groups</p>
         </div>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="card p-0 mb-4">
-      <div class="d-flex border-bottom px-3">
-        <button class="tab-btn" [class.active]="activeTab === 'posts'"
-          (click)="activeTab = 'posts'">
-          📝 Pending Posts
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'users'"
-          (click)="activeTab = 'users'">
-          👥 Users
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'reports'"
-          (click)="activeTab = 'reports'">
-          🚨 Reports
-        </button>
-        <button class="tab-btn" [class.active]="activeTab === 'groups'"
-          (click)="activeTab = 'groups'">
-          👥 Groups
-        </button>
+    <!-- Main Card with Tabs -->
+    <div class="card shadow-sm" style="border-radius:16px; border:none;">
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn" [class.active]="activeTab==='posts'"
+          (click)="activeTab='posts'">📝 Pending Posts</button>
+        <button class="tab-btn" [class.active]="activeTab==='users'"
+          (click)="activeTab='users'">👥 Users</button>
+        <button class="tab-btn" [class.active]="activeTab==='reports'"
+          (click)="activeTab='reports'">🚨 Reports</button>
+        <button class="tab-btn" [class.active]="activeTab==='groups'"
+          (click)="activeTab='groups'">👥 Groups</button>
       </div>
 
-      <div class="p-3">
+      <div class="p-4">
+
         <!-- Pending Posts -->
-        <div *ngIf="activeTab === 'posts'">
-          <div *ngFor="let post of pendingPosts" class="card mb-3 p-3">
+        <div *ngIf="activeTab==='posts'">
+          <div *ngFor="let post of pendingPosts" class="card admin-post-card p-3">
             <div class="d-flex align-items-center mb-2">
-              <div class="user-avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
-              <div>
-                <strong>{{ post.username }}</strong>
-                <div class="text-muted" style="font-size:0.8rem;">
-                  {{ post.createdAt | date:'medium' }}
+              <div class="user-avatar me-3">{{ post.username.charAt(0).toUpperCase() }}</div>
+              <div class="flex-grow-1">
+                <strong style="font-size:0.95rem;">{{ post.username }}</strong>
+                <div class="text-muted" style="font-size:0.78rem;">
+                  {{ post.createdAt | date:'MMM d, y · h:mm a' }}
                 </div>
               </div>
-              <span class="pending-badge ms-auto">Pending</span>
+              <span class="pending-badge">Pending</span>
             </div>
-            <p class="mb-2">{{ post.content }}</p>
-            <button class="btn btn-success btn-sm"
+            <p style="font-size:0.92rem; color:#333; margin-bottom:12px;">{{ post.content }}</p>
+            <button class="btn btn-success btn-sm rounded-pill px-3 fw-bold"
               (click)="approvePost(post.postId)">
               ✅ Approve Post
             </button>
           </div>
-          <div *ngIf="pendingPosts.length === 0"
-            class="text-center text-muted py-4">
-            <h5>No pending posts! 🎉</h5>
+          <div *ngIf="pendingPosts.length===0" class="empty-state">
+            <div class="empty-icon">🎉</div>
+            <p>No pending posts — all caught up!</p>
           </div>
         </div>
 
         <!-- Users -->
-        <div *ngIf="activeTab === 'users'">
+        <div *ngIf="activeTab==='users'">
           <div *ngFor="let user of users" class="user-row">
             <div class="user-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
             <div class="flex-grow-1">
               <div *ngIf="editingUserId !== user.userId">
-                <strong>{{ user.username }}</strong>
-                <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
+                <strong style="font-size:0.92rem;">{{ user.username }}</strong>
+                <div class="text-muted" style="font-size:0.8rem;">{{ user.email }}</div>
               </div>
-              <div *ngIf="editingUserId === user.userId">
-                <input type="text" class="form-control form-control-sm mb-1"
-                  [(ngModel)]="editUsername" placeholder="Username"/>
+              <div *ngIf="editingUserId === user.userId" class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm"
+                  [(ngModel)]="editUsername" placeholder="Username"
+                  style="border-radius:8px;"/>
                 <input type="email" class="form-control form-control-sm"
-                  [(ngModel)]="editEmail" placeholder="Email"/>
+                  [(ngModel)]="editEmail" placeholder="Email"
+                  style="border-radius:8px;"/>
               </div>
             </div>
-            <span class="badge me-2"
-              [style.background]="user.role === 'Admin' ? '#dc3545' : '#1877f2'">
+            <span class="badge rounded-pill px-3 py-2"
+              [style.background]="user.role==='Admin' ? '#dc3545' : '#1877f2'"
+              style="font-size:0.78rem;">
               {{ user.role }}
             </span>
-            <div *ngIf="editingUserId !== user.userId">
-              <button class="btn btn-outline-primary btn-sm me-1"
-                (click)="startEdit(user)">
-                ✏️
-              </button>
-              <button class="btn btn-outline-danger btn-sm"
-                (click)="deleteUser(user.userId)">
-                🗑️
-              </button>
+            <div *ngIf="editingUserId !== user.userId" class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                (click)="startEdit(user)">✏️ Edit</button>
+              <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                (click)="deleteUser(user.userId)">🗑️</button>
             </div>
-            <div *ngIf="editingUserId === user.userId">
-              <button class="btn btn-success btn-sm me-1"
-                (click)="saveEdit(user.userId)">
-                ✅
-              </button>
-              <button class="btn btn-secondary btn-sm"
-                (click)="cancelEdit()">
-                ✕
-              </button>
+            <div *ngIf="editingUserId === user.userId" class="d-flex gap-2">
+              <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold"
+                (click)="saveEdit(user.userId)">✅ Save</button>
+              <button class="btn btn-sm btn-secondary rounded-pill px-3"
+                (click)="cancelEdit()">Cancel</button>
             </div>
+          </div>
+          <div *ngIf="users.length===0" class="empty-state">
+            <div class="empty-icon">👤</div>
+            <p>No users found.</p>
           </div>
         </div>
 
         <!-- Reports -->
-        <div *ngIf="activeTab === 'reports'">
-          <div *ngFor="let report of reports" class="card mb-3 p-3">
-            <div class="d-flex justify-content-between mb-2">
-              <span class="badge bg-danger">Report</span>
-              <small class="text-muted">{{ report.timeStamp | date:'medium' }}</small>
+        <div *ngIf="activeTab==='reports'">
+          <div *ngFor="let report of reports" class="card report-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-danger rounded-pill px-3">🚨 Report</span>
+              <small class="text-muted">{{ report.timeStamp | date:'MMM d, y' }}</small>
             </div>
-            <p class="mb-1">
-              <strong>Reported User:</strong> {{ report.reportedUser }}
-            </p>
-            <p class="mb-1">
-              <strong>Reported By:</strong> {{ report.reportingUser }}
-            </p>
-            <p class="mb-0">
-              <strong>Reason:</strong> {{ report.reason }}
-            </p>
+            <div style="font-size:0.9rem; line-height:1.8;">
+              <div><strong>Reported:</strong>
+                <span class="badge bg-light text-dark ms-2 border">{{ report.reportedUser }}</span>
+              </div>
+              <div><strong>By:</strong>
+                <span class="badge bg-light text-dark ms-2 border">{{ report.reportingUser }}</span>
+              </div>
+              <div class="mt-1"><strong>Reason:</strong>
+                <span class="text-muted ms-1">{{ report.reason }}</span>
+              </div>
+            </div>
           </div>
-          <div *ngIf="reports.length === 0"
-            class="text-center text-muted py-4">
-            <h5>No reports yet! ✅</h5>
+          <div *ngIf="reports.length===0" class="empty-state">
+            <div class="empty-icon">✅</div>
+            <p>No reports — community is doing great!</p>
           </div>
         </div>
 
         <!-- Groups -->
-        <div *ngIf="activeTab === 'groups'">
-          <div class="mb-3">
-            <input type="text" class="form-control mb-2"
-              [(ngModel)]="newGroupName" placeholder="Group name"/>
-            <input type="text" class="form-control mb-2"
-              [(ngModel)]="newGroupDescription" placeholder="Group description"/>
-            <button class="btn btn-primary" (click)="createGroup()">
-              ➕ Create Group
-            </button>
-          </div>
-          <hr/>
-          <div *ngFor="let group of groups" class="user-row">
-            <div class="user-avatar">👥</div>
-            <div class="flex-grow-1">
-              <strong>{{ group.name }}</strong>
-              <div class="text-muted" style="font-size:0.85rem;">{{ group.description }}</div>
-              <small>{{ group.memberCount }} members</small>
+        <div *ngIf="activeTab==='groups'">
+          <!-- Create Group Form -->
+          <div class="card p-3 mb-4"
+            style="border-radius:12px; background:#f8f9fa; border:1.5px dashed #d1d5db !important;">
+            <h6 class="fw-bold mb-3" style="color:#374151;">➕ Create New Group</h6>
+            <div class="row g-2">
+              <div class="col-md-5">
+                <input type="text" class="form-control form-control-sm"
+                  [(ngModel)]="newGroupName" placeholder="Group name"
+                  style="border-radius:8px;"/>
+              </div>
+              <div class="col-md-5">
+                <input type="text" class="form-control form-control-sm"
+                  [(ngModel)]="newGroupDescription" placeholder="Description"
+                  style="border-radius:8px;"/>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary btn-sm w-100 fw-bold rounded-pill"
+                  (click)="createGroup()">Create</button>
+              </div>
             </div>
-            <button class="btn btn-outline-danger btn-sm"
-              (click)="deleteGroup(group.groupId)">
-              🗑️
-            </button>
           </div>
-          <div *ngIf="groups.length === 0" class="text-center text-muted py-4">
-            <h5>No groups yet! Create one above ⬆️</h5>
+
+          <!-- Groups List -->
+          <div *ngFor="let group of groups" class="group-row">
+            <div class="group-avatar">👥</div>
+            <div class="flex-grow-1">
+              <strong style="font-size:0.92rem;">{{ group.name }}</strong>
+              <div class="text-muted" style="font-size:0.8rem;">{{ group.description }}</div>
+              <div style="font-size:0.78rem; color:#1877f2; font-weight:600; margin-top:2px;">
+                {{ group.memberCount }} members
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+              (click)="deleteGroup(group.groupId)">🗑️ Delete</button>
+          </div>
+
+          <div *ngIf="groups.length===0" class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p>No groups yet — create one above!</p>
           </div>
         </div>
 

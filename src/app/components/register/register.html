@@ -1,44 +1,60 @@
-<div class="min-vh-100 d-flex align-items-center justify-content-center"
-  style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
-  <div class="card shadow p-4 w-100" style="max-width:420px; margin:16px;">
-    <div class="text-center mb-4">
-      <h2 style="color:#1877f2; font-weight:800;">📖 ProfileBook</h2>
-      <p class="text-muted">Create your account</p>
+<div class="auth-wrapper">
+  <!-- Left Panel -->
+  <div class="auth-left">
+    <div class="brand-content">
+      <div class="brand-logo">📖</div>
+      <h1 class="brand-name">ProfileBook</h1>
+      <p class="brand-tagline">Connect. Share. Belong.</p>
+      <div class="brand-features">
+        <div class="feature-item">🚀 Get started in seconds</div>
+        <div class="feature-item">🔒 Secure & private</div>
+        <div class="feature-item">🌍 Join a growing community</div>
+      </div>
     </div>
+  </div>
 
-    <div *ngIf="errorMessage" class="alert alert-danger py-2">
-      {{ errorMessage }}
-    </div>
+  <!-- Right Panel -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <h2 class="auth-title">Create account</h2>
+      <p class="auth-subtitle">Join ProfileBook today</p>
 
-    <div *ngIf="successMessage" class="alert alert-success py-2">
-      {{ successMessage }}
-    </div>
+      <div *ngIf="errorMessage" class="auth-error">
+        <span>⚠️</span> {{ errorMessage }}
+      </div>
+      <div *ngIf="successMessage" class="auth-success">
+        <span>✅</span> {{ successMessage }}
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Username</label>
-      <input type="text" class="form-control form-control-lg"
-        [(ngModel)]="username" placeholder="Choose a username"/>
-    </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="auth-input"
+          [(ngModel)]="username"
+          placeholder="Choose a username"/>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Email</label>
-      <input type="email" class="form-control form-control-lg"
-        [(ngModel)]="email" placeholder="Enter your email"/>
-    </div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="auth-input"
+          [(ngModel)]="email"
+          placeholder="you@example.com"/>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Password</label>
-      <input type="password" class="form-control form-control-lg"
-        [(ngModel)]="password" placeholder="Min 6 characters"/>
-    </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="auth-input"
+          [(ngModel)]="password"
+          placeholder="Min. 6 characters"/>
+      </div>
 
-    <button class="btn btn-primary btn-lg w-100 mb-3" (click)="register()">
-      Create Account
-    </button>
+      <button class="auth-btn" (click)="register()">
+        Create Account →
+      </button>
 
-    <div class="text-center">
-      <span class="text-muted">Already have an account? </span>
-      <a routerLink="/login" class="text-primary fw-semibold">Login</a>
+      <p class="auth-switch">
+        Already have an account?
+        <a routerLink="/login" class="auth-link">Sign in</a>
+      </p>
     </div>
   </div>
 </div>
