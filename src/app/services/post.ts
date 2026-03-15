@@ -2,13 +2,20 @@ import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { AuthService } from './auth';
 
+// PostService handles all post related API calls
+// including creating, liking, commenting and uploading files
+
 @Injectable({
   providedIn: 'root'
 })
 export class PostService {
+   // Base URL for post endpoints
   private apiUrl = 'https://localhost:7193/api/Post';
 
   constructor(private authService: AuthService) {}
+
+  // Helper method to build authorization headers
+  // Attaches JWT token to every request
 
   private getHeaders() {
     return {
@@ -22,7 +29,9 @@ export class PostService {
     const response = await axios.get(this.apiUrl);
     return response.data;
   }
-
+   
+  // Create a new post with optional image/video
+  // Post starts as Pending until admin approves it
   async createPost(content: string, postImage: string | null = null) {
     const response = await axios.post(this.apiUrl,
       { content, postImage },
@@ -48,7 +57,8 @@ export class PostService {
     );
     return response.data;
   }
-
+  
+  // Admin only - get all pending posts
   async getPendingPosts() {
     const response = await axios.get(
       `${this.apiUrl}/pending`,
@@ -56,7 +66,7 @@ export class PostService {
     );
     return response.data;
   }
-
+  // Admin only - approve a pending post
   async approvePost(postId: number) {
     const response = await axios.put(
       `${this.apiUrl}/${postId}/approve`,

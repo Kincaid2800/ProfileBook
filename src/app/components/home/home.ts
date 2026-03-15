@@ -6,6 +6,8 @@ import { AuthService } from '../../services/auth';
 import { PostService } from '../../services/post';
 import { UserService } from '../../services/user';
 
+// HomeComponent is the main feed page
+// Users can create posts, like, comment and report users
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -14,15 +16,24 @@ import { UserService } from '../../services/user';
   styleUrl: './home.css'
 })
 export class HomeComponent implements OnInit {
+  // List of all approved posts shown in the feed
   posts: any[] = [];
+  // Text content for new post being created
   newPostContent = '';
+  // Success/error message shown after creating a post
   postMessage = '';
+  // Stores comment text for each post separately using postId as key
   commentTexts: { [key: number]: string } = {};
+  // Currently logged in username
   username = '';
+  // Currently logged in username
   selectedFile: File | null = null;
+  // Preview URL for selected file shown before posting
   filePreview: string | null = null;
+  // Type of selected file - 'image' or 'video'
   fileType: string = '';
 
+  // Injecting required services
   private authService = inject(AuthService);
   private postService = inject(PostService);
   private userService = inject(UserService);
@@ -33,6 +44,7 @@ export class HomeComponent implements OnInit {
     await this.loadPosts();
   }
 
+ // Fetch all approved posts from the API
   async loadPosts() {
     try {
       this.posts = await this.postService.getAllPosts();
@@ -40,7 +52,8 @@ export class HomeComponent implements OnInit {
       console.error('Error loading posts:', error);
     }
   }
-
+  
+  // Create a new post with optional image/video
   async createPost() {
     try {
       let fileUrl = null;
@@ -59,6 +72,8 @@ export class HomeComponent implements OnInit {
     }
   }
 
+   // Handle file selection for photo/video upload
+  // Creates a preview URL to show before posting
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -71,7 +86,7 @@ export class HomeComponent implements OnInit {
       reader.readAsDataURL(file);
     }
   }
-
+  // Remove selected file and clear preview
   removeFile() {
     this.selectedFile = null;
     this.filePreview = null;
@@ -96,6 +111,8 @@ export class HomeComponent implements OnInit {
       console.error('Error adding comment:', error);
     }
   }
+  // Report a user for inappropriate behavior
+  // Shows a prompt to get the reason for reporting
   async reportUser(username: string, userId: number) {
   const reason = prompt(`Why are you reporting ${username}?`);
   if (!reason) return;
@@ -106,6 +123,7 @@ export class HomeComponent implements OnInit {
     alert('Failed to report user.');
   }
 }
+  // Navigation methods
   goToSearch() {
   this.router.navigate(['/search']);
 }
