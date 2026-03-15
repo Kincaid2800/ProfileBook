@@ -18,7 +18,7 @@
 
   <div class="container">
 
-    <!-- Stat Cards -->
+    <!-- Stat Cards full details -->
     <div class="row mb-4">
       <div class="col-md-3 col-6">
         <div class="stat-card" style="background:linear-gradient(135deg,#1877f2,#0d6efd);">
@@ -53,7 +53,7 @@
     <!-- Main Card with Tabs -->
     <div class="card shadow-sm" style="border-radius:16px; border:none;">
 
-      <!-- Tab Bar -->
+      <!-- Tab Bar!!!-->
       <div class="tab-bar">
         <button class="tab-btn" [class.active]="activeTab==='posts'"
           (click)="activeTab='posts'">📝 Pending Posts</button>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <!-- Reports -->
+        <!-- Reports full and final-->
         <div *ngIf="activeTab==='reports'">
           <div *ngFor="let report of reports" class="card report-card p-3">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -159,9 +159,9 @@
           </div>
         </div>
 
-        <!-- Groups -->
+        <!-- Groups hai ye -->
         <div *ngIf="activeTab==='groups'">
-          <!-- Create Group Form -->
+          <!-- Creating Group Form -->
           <div class="card p-3 mb-4"
             style="border-radius:12px; background:#f8f9fa; border:1.5px dashed #d1d5db !important;">
             <h6 class="fw-bold mb-3" style="color:#374151;">➕ Create New Group</h6>
@@ -183,7 +183,7 @@
             </div>
           </div>
 
-          <!-- Groups List -->
+          <!-- Groups List full and final -->
           <div *ngFor="let group of groups" class="group-row">
             <div class="group-avatar">👥</div>
             <div class="flex-grow-1">

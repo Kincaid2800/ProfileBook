@@ -1,34 +1,51 @@
+<!-- Groups Page — shows all groups created by admin, users can join or leave -->
 <div style="background:#f0f2f5; min-height:100vh;">
+
+  <!-- Top navbar with back navigation -->
   <nav class="navbar navbar-dark bg-primary mb-4">
     <div class="container">
       <a class="navbar-brand">👥 Groups</a>
+      <!-- Takes user back to the home feed -->
       <button class="btn btn-light btn-sm" (click)="goHome()">Back to Home</button>
     </div>
   </nav>
 
   <div class="container" style="max-width:680px;">
+
+    <!-- Loop through each group returned from GET /api/Group -->
     <div *ngFor="let group of groups" class="card mb-3 p-3">
       <div class="d-flex align-items-center">
+
+        <!-- Group avatar — static emoji since groups don't have profile images -->
         <div class="rounded-circle bg-primary text-white d-flex
           align-items-center justify-content-center me-3"
           style="width:50px;height:50px;font-size:1.3rem;">
           👥
         </div>
+
+        <!-- Group info: name, description, member count from API response -->
         <div class="flex-grow-1">
           <strong>{{ group.name }}</strong>
           <div class="text-muted" style="font-size:0.85rem;">{{ group.description }}</div>
+          <!-- memberCount is computed in backend: g.Members.Count -->
           <small class="text-muted">{{ group.memberCount }} members</small>
         </div>
+
+        <!-- Toggle button — calls POST /api/Group/{id}/join
+             Backend handles join if not a member, leave if already a member -->
         <button class="btn btn-outline-primary btn-sm"
           (click)="joinGroup(group.groupId)">
           Join / Leave
         </button>
+
       </div>
     </div>
 
+    <!-- Empty state — shown when admin hasn't created any groups yet -->
     <div *ngIf="groups.length === 0" class="text-center text-muted mt-4">
       <h5>No groups yet 😕</h5>
       <p>Ask admin to create some groups!</p>
     </div>
+
   </div>
 </div>

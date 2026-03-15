@@ -7,11 +7,11 @@ import { UserService } from '../../services/user';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group';
 
-/**
- * AdminComponent - Dashboard for admin users
- * Handles user management, post approval, reports, and group management
- * Access restricted to users with Admin role only
- */
+
+ //AdminComponent - Dashboard for admin users
+ // Handles user management, post approval, reports, and group management
+ //Access restricted to users with Admin role only
+ 
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -45,11 +45,11 @@ export class AdminComponent implements OnInit {
   private groupService = inject(GroupService);
   private router = inject(Router);
 
-  /**
-   * Lifecycle hook - runs when component initializes
-   * Checks if user has Admin role, redirects to home if not
-   * Loads all dashboard data if authorized
-   */
+  
+   //Lifecycle hook - runs when component initializes
+   // Checks if user has Admin role, redirects to home if not
+   // Loads all dashboard data if authorized
+   
   async ngOnInit() {
     if (!this.authService.isAdmin()) {
       // Non-admin users are redirected to home page
