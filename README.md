@@ -134,7 +134,7 @@ Frontend URL:
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | admin@profilebook.com | Admin@123 |
+| Admin | admin@test.com | Admin@123 |
 | User | Register in the app | Create your own |
 
 ## Database Schema
