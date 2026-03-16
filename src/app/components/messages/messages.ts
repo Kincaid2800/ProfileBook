@@ -1,124 +1,260 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
-import { MessageService } from '../../services/message';
+import { ChatMessage, MessageService } from '../../services/message';
 
+interface ConversationSummary {
+  key: string;
+  userId?: number;
+  username: string;
+  lastMessage: string;
+  timeStamp: string;
+}
 
- // MessagesComponent — User-to-user direct messaging page
- //Left panel: search for users to chat with
- //Right panel: chat window showing conversation history
- //Messages are stored in the Messages table via POST /api/Message
- //Route: /messages
- 
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [
-    CommonModule,  // Needed for *ngIf and *ngFor in template
-    FormsModule    // Needed for [(ngModel)] on search input and message input
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './messages.html',
   styleUrl: './messages.css'
 })
-export class MessagesComponent implements OnInit {
-  // Current value of the user search input box
+export class MessagesComponent implements OnInit, OnDestroy {
   searchQuery = '';
-
-  // List of users returned from GET /api/User/search?username=
   searchResults: any[] = [];
-
-  // The user currently selected for chatting — null means no chat open
-  selectedUser: any = null;
-
-  // Full conversation history between logged-in user and selectedUser
-  // Loaded from GET /api/Message/{userId}
-  messages: any[] = [];
-
-  // Bound to the message input box via [(ngModel)]
+  recentConversations: ConversationSummary[] = [];
+  selectedUser: { userId?: number; username: string } | null = null;
+  messages: ChatMessage[] = [];
   newMessage = '';
+  currentUsername = '';
+  loadingRecent = true;
+  errorMessage = '';
 
-  // Modern Angular inject() pattern for standalone components
+  private cacheKeyPrefix = 'profilebook_recent_chats_';
+  private refreshTimerId: number | null = null;
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private messageService = inject(MessageService);
   private router = inject(Router);
 
-  
-   // Lifecycle hook — runs once when component loads
-   //Checks if user is logged in — redirects to login if not
-   //Protects the messages page from unauthenticated access
-   
   async ngOnInit() {
     if (!this.authService.isLoggedIn()) {
-      // No token in localStorage — send user back to login
       this.router.navigate(['/login']);
+      return;
+    }
+
+    this.currentUsername = this.authService.getUsername() || '';
+    this.recentConversations = this.readCachedConversations();
+    this.loadingRecent = this.recentConversations.length === 0;
+    await this.refreshMessageState();
+
+    this.refreshTimerId = window.setInterval(() => {
+      void this.refreshMessageState(false);
+    }, 8000);
+  }
+
+  ngOnDestroy() {
+    if (this.refreshTimerId !== null) {
+      window.clearInterval(this.refreshTimerId);
     }
   }
 
-  
-   // Searches for users by username
-   //Calls GET /api/User/search?username={searchQuery}
-   //Results populate the left panel for user selection
-   //Contains() match on backend — partial username works too
-   
-  async searchUsers() {
+  @HostListener('window:focus')
+  async onWindowFocus() {
+    await this.refreshMessageState(false);
+  }
+
+  private get cacheKey() {
+    return `${this.cacheKeyPrefix}${this.currentUsername.toLowerCase()}`;
+  }
+
+  private readCachedConversations(): ConversationSummary[] {
+    const cachedValue = localStorage.getItem(this.cacheKey);
+    if (!cachedValue) {
+      return [];
+    }
+
     try {
-      this.searchResults = await this.userService.searchUsers(this.searchQuery);
+      const parsed = JSON.parse(cachedValue);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeCachedConversations(conversations: ConversationSummary[]) {
+    localStorage.setItem(this.cacheKey, JSON.stringify(conversations));
+  }
+
+  private buildConversationSummary(message: ChatMessage): ConversationSummary | null {
+    const currentUsername = this.currentUsername.trim().toLowerCase();
+    const senderUsername = message.sender.trim();
+    const receiverUsername = message.receiver.trim();
+    const otherUsername = message.otherUsername || (senderUsername.toLowerCase() === currentUsername ? receiverUsername : senderUsername);
+
+    if (!otherUsername) {
+      return null;
+    }
+
+    const inferredIsMine = message.isMine || senderUsername.toLowerCase() === currentUsername;
+    const inferredUserId = message.otherUserId || (inferredIsMine ? message.receiverId : message.senderId) || undefined;
+    const key = inferredUserId ? `id:${inferredUserId}` : `name:${otherUsername.toLowerCase()}`;
+
+    return {
+      key,
+      userId: inferredUserId,
+      username: otherUsername,
+      lastMessage: message.messageContent,
+      timeStamp: message.timeStamp
+    };
+  }
+
+  private async ensureUserId(user: { userId?: number; username: string }): Promise<number | undefined> {
+    if (user.userId) {
+      return user.userId;
+    }
+
+    try {
+      const users = await this.userService.searchUsers(user.username);
+      const exactUser = users.find((candidate: any) =>
+        typeof candidate.username === 'string' && candidate.username.toLowerCase() === user.username.toLowerCase()
+      );
+
+      return exactUser?.userId;
+    } catch (error) {
+      console.error('Error resolving chat user:', error);
+      return undefined;
+    }
+  }
+
+  async searchUsers() {
+    if (!this.searchQuery.trim()) {
+      this.searchResults = [];
+      return;
+    }
+
+    try {
+      const users = await this.userService.searchUsers(this.searchQuery);
+      this.searchResults = users.filter((user: any) => user.username !== this.currentUsername);
     } catch (error) {
       console.error('Error searching users:', error);
     }
   }
 
+  async loadRecentConversations() {
+    try {
+      const allMessages = await this.messageService.getMyMessages();
+      const conversations = new Map<string, ConversationSummary>();
 
-  async selectUser(user: any) {
-    this.selectedUser = user;
+      for (const message of allMessages) {
+        const summary = this.buildConversationSummary(message);
+        if (!summary || conversations.has(summary.key)) {
+          continue;
+        }
 
-    // Immediately load existing conversation with this user
+        conversations.set(summary.key, summary);
+      }
+
+      const builtConversations = Array.from(conversations.values());
+      if (builtConversations.length > 0) {
+        this.recentConversations = builtConversations;
+        this.writeCachedConversations(builtConversations);
+      } else {
+        this.recentConversations = this.readCachedConversations();
+      }
+
+      if (!this.selectedUser && this.recentConversations.length > 0) {
+        await this.selectUser(this.recentConversations[0]);
+      }
+
+      this.errorMessage = '';
+    } catch (error) {
+      this.recentConversations = this.readCachedConversations();
+      this.errorMessage = 'Unable to refresh previous chats right now. Showing the latest available list.';
+      console.error('Error loading recent conversations:', error);
+    } finally {
+      this.loadingRecent = false;
+    }
+  }
+
+  async selectUser(user: { userId?: number; username: string }) {
+    const resolvedUserId = await this.ensureUserId(user);
+    this.selectedUser = {
+      userId: resolvedUserId,
+      username: user.username
+    };
     await this.loadMessages();
   }
 
-  
-   // Loads full conversation between logged-in user and selectedUser
-
   async loadMessages() {
+    if (!this.selectedUser) {
+      this.messages = [];
+      return;
+    }
+
+    if (!this.selectedUser.userId) {
+      this.selectedUser.userId = await this.ensureUserId(this.selectedUser);
+    }
+
+    if (!this.selectedUser.userId) {
+      this.errorMessage = 'Open this chat by searching the user once so the conversation can be linked.';
+      this.messages = [];
+      return;
+    }
+
     try {
-      this.messages = await this.messageService.getConversation(this.selectedUser.userId);
+      const loadedMessages = await this.messageService.getConversation(this.selectedUser.userId);
+      this.messages = loadedMessages.map(message => ({
+        ...message,
+        isMine: message.isMine || message.sender.toLowerCase() === this.currentUsername.toLowerCase()
+      }));
+      this.errorMessage = '';
     } catch (error) {
       console.error('Error loading messages:', error);
     }
   }
 
-  
-   // Sends a new message to the selected user
-   //Calls POST /api/Message?receiverId={id}&content={text}
-   //Trims whitespace — prevents sending empty or blank messages
-   //Clears the input box after sending
-   //Reloads conversation so new message appears immediately in chat window
-   
+  async refreshMessageState(showLoadingState = true) {
+    if (showLoadingState) {
+      this.loadingRecent = true;
+    }
+
+    await this.loadRecentConversations();
+
+    if (this.selectedUser?.userId) {
+      await this.loadMessages();
+    }
+  }
+
   async sendMessage() {
-    // Prevent sending empty or whitespace-only messages
-    if (!this.newMessage.trim()) return;
+    if (!this.selectedUser || !this.newMessage.trim()) return;
+
+    if (!this.selectedUser.userId) {
+      this.selectedUser.userId = await this.ensureUserId(this.selectedUser);
+    }
+
+    if (!this.selectedUser.userId) {
+      this.errorMessage = 'Search and select the user once before sending a message.';
+      return;
+    }
 
     try {
       await this.messageService.sendMessage(this.selectedUser.userId, this.newMessage);
-
-      // Clear input box after successful send
       this.newMessage = '';
-
-      // Reload conversation to show the newly sent message
       await this.loadMessages();
+      await this.loadRecentConversations();
+      this.errorMessage = '';
     } catch (error) {
       console.error('Error sending message:', error);
     }
   }
 
-  
-   // Navigates back to the home feed
-   //Uses Angular Router for SPA navigation — no full page reload
-   
+  async refreshInbox() {
+    await this.refreshMessageState();
+  }
+
   goHome() {
     this.router.navigate(['/home']);
   }

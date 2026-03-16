@@ -2,20 +2,55 @@ import { Injectable } from '@angular/core';
 import axios from 'axios';
 import { AuthService } from './auth';
 
-// PostService handles all post related API calls
-// including creating, liking, commenting and uploading files
+export interface PostComment {
+  commentId: number;
+  content: string;
+  username: string;
+  createdAt: string;
+  isOptimistic?: boolean;
+}
+
+export interface FeedPost {
+  postId: number;
+  userId: number;
+  content: string;
+  postImage: string | null;
+  status: string;
+  username: string;
+  createdAt: string;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
+  comments: PostComment[];
+  showComments?: boolean;
+  isLikePending?: boolean;
+  isCommentPending?: boolean;
+}
+
+export interface LikePostResponse {
+  liked: boolean;
+  likesCount: number;
+}
+
+function readNumber(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function readString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function readBoolean(value: unknown): boolean {
+  return value === true || value === 'true';
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class PostService {
-   // Base URL for post endpoints
   private apiUrl = 'https://localhost:7193/api/Post';
 
   constructor(private authService: AuthService) {}
-
-  // Helper method to build authorization headers
-  // Attaches JWT token to every request
 
   private getHeaders() {
     return {
@@ -25,40 +60,95 @@ export class PostService {
     };
   }
 
-  async getAllPosts() {
-    const response = await axios.get(this.apiUrl);
-    return response.data;
+  private normalizeComment(raw: any): PostComment {
+    return {
+      commentId: readNumber(raw?.commentId ?? raw?.CommentId),
+      content: readString(raw?.content ?? raw?.Content),
+      username: readString(raw?.username ?? raw?.Username),
+      createdAt: readString(raw?.createdAt ?? raw?.CreatedAt)
+    };
   }
-   
-  // Create a new post with optional image/video
-  // Post starts as Pending until admin approves it
+
+  private normalizePost(raw: any): FeedPost {
+    const rawComments = raw?.comments ?? raw?.Comments;
+    const comments = Array.isArray(rawComments)
+      ? rawComments.map((comment: any) => this.normalizeComment(comment))
+      : [];
+
+    return {
+      postId: readNumber(raw?.postId ?? raw?.PostId),
+      userId: readNumber(raw?.userId ?? raw?.UserId),
+      content: readString(raw?.content ?? raw?.Content),
+      postImage: readString(raw?.postImage ?? raw?.PostImage) || null,
+      status: readString(raw?.status ?? raw?.Status),
+      username: readString(raw?.username ?? raw?.Username),
+      createdAt: readString(raw?.createdAt ?? raw?.CreatedAt),
+      likesCount: readNumber(raw?.likesCount ?? raw?.LikesCount),
+      isLikedByCurrentUser: readBoolean(raw?.isLikedByCurrentUser ?? raw?.IsLikedByCurrentUser),
+      comments,
+      showComments: false,
+      isLikePending: false,
+      isCommentPending: false
+    };
+  }
+
+  async getAllPosts(): Promise<FeedPost[]> {
+    const response = await axios.get(this.apiUrl, {
+      params: { _: Date.now() },
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache'
+      }
+    });
+
+    const data = Array.isArray(response.data) ? response.data : [];
+    return data.map(post => this.normalizePost(post));
+  }
+
   async createPost(content: string, postImage: string | null = null) {
-    const response = await axios.post(this.apiUrl,
+    const response = await axios.post(
+      this.apiUrl,
       { content, postImage },
       this.getHeaders()
     );
     return response.data;
   }
 
-  async likePost(postId: number) {
+  async likePost(postId: number): Promise<LikePostResponse> {
     const response = await axios.post(
       `${this.apiUrl}/${postId}/like`,
       {},
       this.getHeaders()
     );
-    return response.data;
+
+    if (typeof response.data === 'string') {
+      const responseText = response.data.toLowerCase();
+      return {
+        liked: !responseText.includes('unliked'),
+        likesCount: -1
+      };
+    }
+
+    return {
+      liked: readBoolean(response.data?.liked ?? response.data?.Liked),
+      likesCount: readNumber(response.data?.likesCount ?? response.data?.LikesCount)
+    };
   }
 
-  async addComment(postId: number, content: string) {
+  async addComment(postId: number, content: string): Promise<PostComment | null> {
     const response = await axios.post(
       `${this.apiUrl}/${postId}/comment`,
       { content },
       this.getHeaders()
     );
-    return response.data;
+
+    if (response.data && typeof response.data === 'object') {
+      return this.normalizeComment(response.data);
+    }
+
+    return null;
   }
-  
-  // Admin only - get all pending posts
+
   async getPendingPosts() {
     const response = await axios.get(
       `${this.apiUrl}/pending`,
@@ -66,7 +156,7 @@ export class PostService {
     );
     return response.data;
   }
-  // Admin only - approve a pending post
+
   async approvePost(postId: number) {
     const response = await axios.put(
       `${this.apiUrl}/${postId}/approve`,
@@ -75,6 +165,7 @@ export class PostService {
     );
     return response.data;
   }
+
   async uploadFile(file: File) {
     const formData = new FormData();
     formData.append('file', file);

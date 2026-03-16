@@ -3,11 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
-import { PostService } from '../../services/post';
+import { FeedPost, PostComment, PostService } from '../../services/post';
 import { UserService } from '../../services/user';
 
-// HomeComponent is the main feed page
-// Users can create posts, like, comment and report users
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -16,24 +14,15 @@ import { UserService } from '../../services/user';
   styleUrl: './home.css'
 })
 export class HomeComponent implements OnInit {
-  // List of all approved posts shown in the feed
-  posts: any[] = [];
-  // Text content for new post being created
+  posts: FeedPost[] = [];
   newPostContent = '';
-  // Success/error message shown after creating a post
   postMessage = '';
-  // Stores comment text for each post separately using postId as key
   commentTexts: { [key: number]: string } = {};
-  // Currently logged in username
   username = '';
-  // Currently logged in username
   selectedFile: File | null = null;
-  // Preview URL for selected file shown before posting
   filePreview: string | null = null;
-  // Type of selected file - 'image' or 'video'
-  fileType: string = '';
+  fileType = '';
 
-  // Injecting required services
   private authService = inject(AuthService);
   private postService = inject(PostService);
   private userService = inject(UserService);
@@ -44,16 +33,29 @@ export class HomeComponent implements OnInit {
     await this.loadPosts();
   }
 
- // Fetch all approved posts from the API
   async loadPosts() {
+    const previousUiState = new Map(this.posts.map(post => [post.postId, {
+      showComments: post.showComments ?? false,
+      isLikePending: post.isLikePending ?? false,
+      isCommentPending: post.isCommentPending ?? false
+    }]));
+
     try {
-      this.posts = await this.postService.getAllPosts();
+      const posts = await this.postService.getAllPosts();
+      this.posts = posts.map(post => {
+        const uiState = previousUiState.get(post.postId);
+        return {
+          ...post,
+          showComments: uiState?.showComments ?? false,
+          isLikePending: false,
+          isCommentPending: false
+        };
+      });
     } catch (error) {
       console.error('Error loading posts:', error);
     }
   }
-  
-  // Create a new post with optional image/video
+
   async createPost() {
     try {
       let fileUrl = null;
@@ -72,8 +74,6 @@ export class HomeComponent implements OnInit {
     }
   }
 
-   // Handle file selection for photo/video upload
-  // Creates a preview URL to show before posting
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -86,7 +86,7 @@ export class HomeComponent implements OnInit {
       reader.readAsDataURL(file);
     }
   }
-  // Remove selected file and clear preview
+
   removeFile() {
     this.selectedFile = null;
     this.filePreview = null;
@@ -94,39 +94,98 @@ export class HomeComponent implements OnInit {
   }
 
   async likePost(postId: number) {
+    const post = this.posts.find(currentPost => currentPost.postId === postId);
+    if (!post || post.isLikePending) {
+      return;
+    }
+
+    const previousLikedState = post.isLikedByCurrentUser;
+    const previousLikesCount = post.likesCount;
+
+    post.isLikePending = true;
+    post.isLikedByCurrentUser = !previousLikedState;
+    post.likesCount = Math.max(0, previousLikesCount + (previousLikedState ? -1 : 1));
+
     try {
-      await this.postService.likePost(postId);
-      await this.loadPosts();
+      const likeResult = await this.postService.likePost(postId);
+      post.isLikedByCurrentUser = likeResult.liked;
+      if (likeResult.likesCount >= 0) {
+        post.likesCount = likeResult.likesCount;
+      }
     } catch (error) {
+      post.isLikedByCurrentUser = previousLikedState;
+      post.likesCount = previousLikesCount;
       console.error('Error liking post:', error);
+    } finally {
+      post.isLikePending = false;
     }
   }
 
   async addComment(postId: number, content: string) {
+    const post = this.posts.find(currentPost => currentPost.postId === postId);
+    const trimmedContent = content?.trim();
+
+    if (!post || post.isCommentPending || !trimmedContent) {
+      return;
+    }
+
+    const tempCommentId = -Date.now();
+    const optimisticComment: PostComment = {
+      commentId: tempCommentId,
+      content: trimmedContent,
+      username: this.username || 'You',
+      createdAt: new Date().toISOString(),
+      isOptimistic: true
+    };
+
+    post.showComments = true;
+    post.isCommentPending = true;
+    post.comments = [...post.comments, optimisticComment];
+    this.commentTexts[postId] = '';
+
     try {
-      await this.postService.addComment(postId, this.commentTexts[postId]);
-      this.commentTexts[postId] = '';
-      await this.loadPosts();
+      const createdComment = await this.postService.addComment(postId, trimmedContent);
+      post.comments = post.comments.map(comment =>
+        comment.commentId === tempCommentId
+          ? { ...(createdComment ?? optimisticComment), isOptimistic: false }
+          : comment
+      );
     } catch (error) {
+      post.comments = post.comments.filter(comment => comment.commentId !== tempCommentId);
+      this.commentTexts[postId] = trimmedContent;
       console.error('Error adding comment:', error);
+    } finally {
+      post.isCommentPending = false;
     }
   }
-  // Report a user for inappropriate behavior
-  // Shows a prompt to get the reason for reporting
-  async reportUser(username: string, userId: number) {
-  const reason = prompt(`Why are you reporting ${username}?`);
-  if (!reason) return;
-  try {
-    await this.userService.reportUser(userId, reason);
-    alert('User reported successfully!');
-  } catch (error) {
-    alert('Failed to report user.');
+
+  toggleComments(post: FeedPost) {
+    post.showComments = !post.showComments;
   }
-}
-  // Navigation methods
+
+  async reportUser(username: string, userId: number) {
+    const reason = prompt(`Why are you reporting ${username}?`);
+    if (!reason || !userId) return;
+
+    try {
+      await this.userService.reportUser(userId, reason);
+      alert('User reported successfully!');
+    } catch (error) {
+      alert('Failed to report user.');
+    }
+  }
+
+  trackByPostId(_: number, post: FeedPost) {
+    return post.postId;
+  }
+
+  trackByCommentId(_: number, comment: PostComment) {
+    return comment.commentId;
+  }
+
   goToSearch() {
-  this.router.navigate(['/search']);
-}
+    this.router.navigate(['/search']);
+  }
 
   goToMessages() {
     this.router.navigate(['/messages']);
@@ -135,9 +194,10 @@ export class HomeComponent implements OnInit {
   goToProfile() {
     this.router.navigate(['/profile']);
   }
+
   goToGroups() {
-  this.router.navigate(['/groups']);
-}
+    this.router.navigate(['/groups']);
+  }
 
   logout() {
     this.authService.logout();

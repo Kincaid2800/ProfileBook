@@ -1,51 +1,65 @@
-<!-- Groups Page — shows all groups created by admin, users can join or leave -->
-<div style="background:#f0f2f5; min-height:100vh;">
-
-  <!-- Top navbar with back navigation -->
-  <nav class="navbar navbar-dark bg-primary mb-4">
-    <div class="container">
-      <a class="navbar-brand">👥 Groups</a>
-      <!-- Takes user back to the home feed -->
-      <button class="btn btn-light btn-sm" (click)="goHome()">Back to Home</button>
+<div class="groups-shell">
+  <nav class="groups-navbar">
+    <div class="container groups-navbar-inner">
+      <div>
+        <h1>Groups</h1>
+        <p>Discover communities created by the admin and join the ones you like.</p>
+      </div>
+      <div class="groups-actions">
+        <button class="btn btn-outline-light btn-sm" (click)="refreshGroups()">Refresh</button>
+        <button class="btn btn-light btn-sm" (click)="goHome()">Back to Home</button>
+      </div>
     </div>
   </nav>
 
-  <div class="container" style="max-width:680px;">
-
-    <!-- Loop through each group returned from GET /api/Group -->
-    <div *ngFor="let group of groups" class="card mb-3 p-3">
-      <div class="d-flex align-items-center">
-
-        <!-- Group avatar — static emoji since groups don't have profile images -->
-        <div class="rounded-circle bg-primary text-white d-flex
-          align-items-center justify-content-center me-3"
-          style="width:50px;height:50px;font-size:1.3rem;">
-          👥
-        </div>
-
-        <!-- Group info: name, description, member count from API response -->
-        <div class="flex-grow-1">
-          <strong>{{ group.name }}</strong>
-          <div class="text-muted" style="font-size:0.85rem;">{{ group.description }}</div>
-          <!-- memberCount is computed in backend: g.Members.Count -->
-          <small class="text-muted">{{ group.memberCount }} members</small>
-        </div>
-
-        <!-- Toggle button — calls POST /api/Group/{id}/join
-             Backend handles join if not a member, leave if already a member -->
-        <button class="btn btn-outline-primary btn-sm"
-          (click)="joinGroup(group.groupId)">
-          Join / Leave
-        </button>
-
+  <div class="container groups-container">
+    <div class="groups-summary card shadow-sm">
+      <div>
+        <span class="summary-label">Available groups</span>
+        <strong>{{ groups.length }}</strong>
+      </div>
+      <div>
+        <span class="summary-label">Live updates</span>
+        <strong>Every 10 seconds</strong>
       </div>
     </div>
 
-    <!-- Empty state — shown when admin hasn't created any groups yet -->
-    <div *ngIf="groups.length === 0" class="text-center text-muted mt-4">
-      <h5>No groups yet 😕</h5>
-      <p>Ask admin to create some groups!</p>
+    <div *ngIf="errorMessage" class="alert alert-warning groups-alert" role="alert">
+      {{ errorMessage }}
     </div>
 
+    <div *ngIf="loading && groups.length === 0" class="groups-state card shadow-sm">
+      <h5>Loading groups...</h5>
+      <p>Fetching the latest group list for you.</p>
+    </div>
+
+    <div *ngIf="!loading && groups.length > 0" class="groups-grid">
+      <article *ngFor="let group of groups" class="group-card card shadow-sm" [class.joined]="group.isMember">
+        <div class="group-card-top">
+          <div class="group-avatar">{{ group.name.charAt(0).toUpperCase() }}</div>
+          <div class="group-copy">
+            <strong>{{ group.name }}</strong>
+            <p>{{ group.description || 'No description added yet.' }}</p>
+          </div>
+        </div>
+
+        <div class="group-meta">
+          <span>{{ group.memberCount }} members</span>
+          <span *ngIf="group.createdAt">Created {{ group.createdAt | date:'mediumDate' }}</span>
+        </div>
+
+        <button class="join-btn"
+          [class.joined]="group.isMember"
+          [disabled]="isJoining(group.groupId)"
+          (click)="joinGroup(group)">
+          {{ isJoining(group.groupId) ? 'Updating...' : (group.isMember ? 'Leave Group' : 'Join Group') }}
+        </button>
+      </article>
+    </div>
+
+    <div *ngIf="!loading && groups.length === 0" class="groups-state card shadow-sm">
+      <h5>No groups yet</h5>
+      <p>Ask the admin to create a group or hit refresh if one was just added.</p>
+    </div>
   </div>
 </div>

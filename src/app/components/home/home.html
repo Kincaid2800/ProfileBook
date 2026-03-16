@@ -1,23 +1,19 @@
-<div style="background:#f0f2f5; min-height:100vh;">
-
-  <!-- Navbar -->
+<div class="feed-shell">
   <nav class="navbar main-navbar mb-4">
     <div class="container d-flex align-items-center justify-content-between">
-      <span class="navbar-brand text-white nav-brand mb-0">📖 ProfileBook</span>
+      <span class="navbar-brand text-white nav-brand mb-0">ProfileBook</span>
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="text-white nav-hello">Hello, <strong>{{ username }}</strong></span>
-        <button class="btn nav-btn" (click)="goToSearch()">🔍 Search</button>
-        <button class="btn nav-btn" (click)="goToGroups()">👥 Groups</button>
-        <button class="btn nav-btn" (click)="goToMessages()">💬 Messages</button>
-        <button class="btn nav-btn" (click)="goToProfile()">👤 Profile</button>
+        <button class="btn nav-btn" (click)="goToSearch()">Search</button>
+        <button class="btn nav-btn" (click)="goToGroups()">Groups</button>
+        <button class="btn nav-btn" (click)="goToMessages()">Messages</button>
+        <button class="btn nav-btn" (click)="goToProfile()">Profile</button>
         <button class="btn nav-btn nav-btn-danger" (click)="logout()">Logout</button>
       </div>
     </div>
   </nav>
 
-  <div class="container" style="max-width:680px;">
-
-    <!-- Create Post -->
+  <div class="container feed-container">
     <div class="card create-post-card shadow-sm mb-4">
       <div class="d-flex align-items-start mb-3">
         <div class="avatar me-3">{{ username.charAt(0).toUpperCase() }}</div>
@@ -27,31 +23,29 @@
         </textarea>
       </div>
 
-      <!-- File Preview -->
       <div *ngIf="filePreview" class="mb-3 position-relative">
         <img *ngIf="fileType === 'image'" [src]="filePreview"
           class="img-fluid rounded-3" style="max-height:220px; width:100%; object-fit:cover;"/>
         <video *ngIf="fileType === 'video'" [src]="filePreview"
           class="w-100 rounded-3" style="max-height:220px;" controls></video>
         <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-pill"
-          (click)="removeFile()" style="width:28px;height:28px;padding:0;font-size:0.75rem;">✕</button>
+          (click)="removeFile()" style="width:28px;height:28px;padding:0;font-size:0.75rem;">x</button>
       </div>
 
-      <!-- Post Actions Row -->
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex gap-2">
-          <label class="action-btn" style="cursor:pointer; margin:0;">
-            🖼️ Photo
+      <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+        <div class="d-flex gap-2 flex-wrap">
+          <label class="action-btn upload-btn" style="cursor:pointer; margin:0;">
+            Photo
             <input type="file" hidden accept="image/*" (change)="onFileSelected($event)"/>
           </label>
-          <label class="action-btn" style="cursor:pointer; margin:0;">
-            🎥 Video
+          <label class="action-btn upload-btn" style="cursor:pointer; margin:0;">
+            Video
             <input type="file" hidden accept="video/*" (change)="onFileSelected($event)"/>
           </label>
         </div>
         <button class="btn btn-primary px-4 rounded-pill fw-bold"
           style="font-size:0.9rem;" (click)="createPost()">
-          Post 📝
+          Post
         </button>
       </div>
 
@@ -61,19 +55,15 @@
       </div>
     </div>
 
-    <!-- Posts Feed -->
-    <div *ngFor="let post of posts" class="card post-card shadow-sm p-3">
-
-      <!-- Header -->
+    <div *ngFor="let post of posts; trackBy: trackByPostId" class="card post-card shadow-sm p-3">
       <div class="post-header">
         <div class="avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
         <div class="post-meta">
           <strong>{{ post.username }}</strong>
-          <div><small>{{ post.createdAt | date:'MMM d, y · h:mm a' }}</small></div>
+          <div><small>{{ post.createdAt | date:'MMM d, y ? h:mm a' }}</small></div>
         </div>
       </div>
 
-      <!-- Content -->
       <p class="post-text">{{ post.content }}</p>
       <img *ngIf="post.postImage && !post.postImage.includes('.mp4')"
         [src]="'https://localhost:7193' + post.postImage"
@@ -82,51 +72,57 @@
         [src]="'https://localhost:7193' + post.postImage"
         class="w-100 rounded-3 mb-3" controls style="max-height:400px;"></video>
 
-      <!-- Actions -->
       <div class="post-actions">
         <button class="action-btn like"
+          [class.active]="post.isLikedByCurrentUser"
+          [class.loading]="post.isLikePending ?? false"
+          [disabled]="post.isLikePending ?? false"
           (click)="likePost(post.postId)">
-          ❤️ {{ post.likesCount }} Likes
+          {{ post.isLikePending ? 'Updating...' : (post.isLikedByCurrentUser ? 'Liked' : 'Like') }}
+          <span class="action-count">{{ post.likesCount }}</span>
         </button>
         <button class="action-btn"
-          (click)="post.showComments = !post.showComments">
-          💬 {{ post.comments.length }} Comments
+          [class.active]="post.showComments"
+          (click)="toggleComments(post)">
+          Comments
+          <span class="action-count">{{ post.comments.length }}</span>
         </button>
         <button class="action-btn report ms-auto"
           (click)="reportUser(post.username, post.userId)">
-          🚨 Report
+          Report
         </button>
       </div>
 
-      <!-- Comments -->
-      <div *ngIf="post.showComments" class="mt-3">
-        <div *ngFor="let comment of post.comments" class="comment-item">
+      <div *ngIf="post.showComments" class="comments-panel mt-3">
+        <div *ngFor="let comment of post.comments; trackBy: trackByCommentId"
+          class="comment-item"
+          [class.optimistic]="comment.isOptimistic">
           <span class="comment-author">{{ comment.username }}</span>
           {{ comment.content }}
           <span class="text-muted ms-2" style="font-size:0.75rem;">
             {{ comment.createdAt | date:'shortTime' }}
           </span>
         </div>
+
         <div class="input-group mt-2">
           <input type="text" class="form-control form-control-sm rounded-start-pill"
             [(ngModel)]="commentTexts[post.postId]"
+            [disabled]="post.isCommentPending ?? false"
             placeholder="Write a comment..."
             (keyup.enter)="addComment(post.postId, commentTexts[post.postId])"/>
-          <button class="btn btn-primary btn-sm rounded-end-pill px-3 fw-bold"
+          <button class="btn btn-primary btn-sm rounded-end-pill px-3 fw-bold comment-submit"
+            [disabled]="post.isCommentPending ?? false"
             (click)="addComment(post.postId, commentTexts[post.postId])">
-            Post
+            {{ post.isCommentPending ? 'Posting...' : 'Post' }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div *ngIf="posts.length === 0"
-      class="text-center py-5 mt-4">
-      <div style="font-size:3.5rem; margin-bottom:16px;">😴</div>
-      <h5 style="color:#555; font-weight:700;">No posts yet</h5>
-      <p style="color:#9ca3af; font-size:0.9rem;">Be the first to share something!</p>
+    <div *ngIf="posts.length === 0" class="text-center py-5 mt-4">
+      <div class="empty-icon">No posts yet</div>
+      <p class="empty-copy">Be the first to share something.</p>
     </div>
-
   </div>
 </div>
+

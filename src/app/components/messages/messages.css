@@ -1,0 +1,110 @@
+.message-navbar {
+  border-radius: 18px !important;
+}
+
+.message-sidebar,
+.message-card {
+  border: none;
+  border-radius: 18px;
+}
+
+.section-label {
+  margin-bottom: 0.75rem;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.conversation-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.8rem 0.9rem;
+  margin-top: 0.6rem;
+  border: 1px solid #dbe3f0;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.conversation-btn:hover,
+.conversation-btn.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+}
+
+.conversation-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.conversation-name {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.conversation-preview {
+  width: 100%;
+  color: #6b7280;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-box {
+  height: 350px;
+  overflow-y: auto;
+  border: 1px solid #dbe3f0;
+  border-radius: 12px;
+  padding: 1rem;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.message-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.message-row.mine {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  max-width: 75%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dbe3f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.message-row.mine .message-bubble {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.message-bubble strong,
+.message-bubble small {
+  display: block;
+}
+
+.message-bubble strong {
+  margin-bottom: 0.2rem;
+}
+
+.message-bubble small {
+  margin-top: 0.35rem;
+  opacity: 0.75;
+}

@@ -1,14 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { GroupService } from '../../services/group';
+import { GroupService, GroupSummary } from '../../services/group';
 
-
- //GroupsComponent — User-facing groups page
- // Displays all groups created by admin.
- //Users can join or leave any group (toggle handled by backend).
- //Route: /groups
- 
 @Component({
   selector: 'app-groups',
   standalone: true,
@@ -16,58 +10,91 @@ import { GroupService } from '../../services/group';
   templateUrl: './groups.html',
   styleUrl: './groups.css'
 })
-export class GroupsComponent implements OnInit {
-  // Holds the list of groups returned from GET /api/Group
-  // Each group has: groupId, name, description, memberCount
-  groups: any[] = [];
+export class GroupsComponent implements OnInit, OnDestroy {
+  groups: GroupSummary[] = [];
+  loading = true;
+  errorMessage = '';
+  private joiningGroupIds = new Set<number>();
+  private refreshTimerId: number | null = null;
 
-  // Angular inject() pattern used instead of constructor injection
   private groupService = inject(GroupService);
   private router = inject(Router);
 
-  
-   //Lifecycle hook — runs once when component initializes
-   //Immediately fetches all available groups from the API
-   
   async ngOnInit() {
+    this.groups = this.groupService.getCachedGroups();
+    this.loading = this.groups.length === 0;
+    await this.loadGroups();
+
+    this.refreshTimerId = window.setInterval(() => {
+      void this.loadGroups(false);
+    }, 10000);
+  }
+
+  ngOnDestroy() {
+    if (this.refreshTimerId !== null) {
+      window.clearInterval(this.refreshTimerId);
+    }
+  }
+
+  @HostListener('window:focus')
+  async onWindowFocus() {
+    await this.loadGroups(false);
+  }
+
+  async loadGroups(showLoadingState = true) {
+    if (showLoadingState && this.groups.length === 0) {
+      this.loading = true;
+    }
+
+    try {
+      this.groups = await this.groupService.getAllGroups();
+      this.errorMessage = '';
+    } catch (error) {
+      this.errorMessage = 'Unable to refresh groups right now. Showing the latest available list.';
+      this.groups = this.groupService.getCachedGroups();
+      console.error('Error loading groups:', error);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async joinGroup(group: GroupSummary) {
+    if (this.joiningGroupIds.has(group.groupId)) {
+      return;
+    }
+
+    this.joiningGroupIds.add(group.groupId);
+    const previousState = {
+      isMember: group.isMember,
+      memberCount: group.memberCount
+    };
+
+    group.isMember = !group.isMember;
+    group.memberCount = Math.max(0, previousState.memberCount + (previousState.isMember ? -1 : 1));
+
+    try {
+      const membership = await this.groupService.joinGroup(group.groupId);
+      group.isMember = membership.isMember;
+      if (membership.memberCount >= 0) {
+        group.memberCount = membership.memberCount;
+      }
+    } catch (error) {
+      group.isMember = previousState.isMember;
+      group.memberCount = previousState.memberCount;
+      console.error('Error joining group:', error);
+    } finally {
+      this.joiningGroupIds.delete(group.groupId);
+    }
+  }
+
+  isJoining(groupId: number) {
+    return this.joiningGroupIds.has(groupId);
+  }
+
+  async refreshGroups() {
     await this.loadGroups();
   }
 
-  
-   // Fetches all groups from GET /api/Group
-   //Requires JWT token — GroupService.getHeaders() adds Authorization header
-   // Updates the groups array which drives the *ngFor in the template
-   
-  async loadGroups() {
-    try {
-      this.groups = await this.groupService.getAllGroups();
-    } catch (error) {
-      // Logs error but doesn't crash — empty groups array stays as fallback
-      console.error('Error loading groups:', error);
-    }
-  }
-
-  
-   //Toggles group membership for the logged-in user
-   //Calls POST /api/Group/{id}/join
-   // Backend logic: adds GroupMember record if not member, removes it if already member
-   //Reloads groups after toggle so memberCount updates immediately
-   // @param groupId - The GroupId of the group to join or leave
-   
-  async joinGroup(groupId: number) {
-    try {
-      await this.groupService.joinGroup(groupId);
-      // Reload to reflect updated memberCount after join/leave
-      await this.loadGroups();
-    } catch (error) {
-      console.error('Error joining group:', error);
-    }
-  }
-
-  
-   //Navigates back to the home feed
-   //Uses Angular Router instead of browser back to maintain app state
-   
   goHome() {
     this.router.navigate(['/home']);
   }

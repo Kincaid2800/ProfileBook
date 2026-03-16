@@ -1,19 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProfileBook.API.Data;
 using ProfileBook.API.DTOs;
 using ProfileBook.API.Models;
-using System.Linq;
 using System.Security.Claims;
 
 namespace ProfileBook.API.Controllers
 {
-    // This controller handles all post-related operations
-    // including creating, liking, commenting and approving posts
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]// All endpoints require login except where specified
+    [Authorize]
     public class PostController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -23,14 +20,19 @@ namespace ProfileBook.API.Controllers
             _context = context;
         }
 
-        // GET: api/post 
-        // Returns all approved posts with their likes and comments
-        // AllowAnonymous means anyone can view posts without logging in
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllPosts()
         {
+            int? currentUserId = null;
+            var currentUserClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(currentUserClaim, out var parsedUserId))
+            {
+                currentUserId = parsedUserId;
+            }
+
             var posts = await _context.Posts
+                .AsNoTracking()
                 .Where(p => p.Status == "Approved")
                 .Include(p => p.User)
                 .Include(p => p.Comments).ThenInclude(c => c.User)
@@ -39,27 +41,30 @@ namespace ProfileBook.API.Controllers
                 .Select(p => new PostResponseDTO
                 {
                     PostId = p.PostId,
+                    UserId = p.UserId,
                     Content = p.Content,
                     PostImage = p.PostImage,
                     Status = p.Status,
                     Username = p.User.Username,
                     CreatedAt = p.CreatedAt,
                     LikesCount = p.Likes.Count,
-                    Comments = p.Comments.Select(c => new CommentResponseDTO
-                    {
-                        CommentId = c.CommentId,
-                        Content = c.Content,
-                        Username = c.User.Username,
-                        CreatedAt = c.CreatedAt
-                    }).ToList()
+                    IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
+                    Comments = p.Comments
+                        .OrderBy(c => c.CreatedAt)
+                        .Select(c => new CommentResponseDTO
+                        {
+                            CommentId = c.CommentId,
+                            Content = c.Content,
+                            Username = c.User.Username,
+                            CreatedAt = c.CreatedAt
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
 
             return Ok(posts);
         }
 
-        // POST: api/post 
-        // Creates a new post with status Pending (requires admin approval)
         [HttpPost]
         public async Task<IActionResult> CreatePost(CreatePostDTO dto)
         {
@@ -79,41 +84,66 @@ namespace ProfileBook.API.Controllers
             return Ok("Post submitted for approval.");
         }
 
-        // POST: api/post/{id}/like 
-        // Like or unlike a post (toggles like status)
         [HttpPost("{id}/like")]
         public async Task<IActionResult> LikePost(int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            var postExists = await _context.Posts.AnyAsync(p => p.PostId == id && p.Status == "Approved");
+            if (!postExists)
+            {
+                return NotFound("Post not found.");
+            }
+
             var existing = await _context.Likes
-                .Where(l => l.PostId == id && l.UserId == userId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(l => l.PostId == id && l.UserId == userId);
+
+            var liked = existing == null;
 
             if (existing != null)
             {
                 _context.Likes.Remove(existing);
-                await _context.SaveChangesAsync();
-                return Ok("Post unliked.");
+            }
+            else
+            {
+                _context.Likes.Add(new Like
+                {
+                    PostId = id,
+                    UserId = userId
+                });
             }
 
-            var like = new Like { PostId = id, UserId = userId };
-            _context.Likes.Add(like);
             await _context.SaveChangesAsync();
 
-            return Ok("Post liked.");
+            var likesCount = await _context.Likes.CountAsync(l => l.PostId == id);
+
+            return Ok(new
+            {
+                liked,
+                likesCount
+            });
         }
 
-        // POST: api/post/{id}/comment 
-        // Add a comment to a specific post
         [HttpPost("{id}/comment")]
         public async Task<IActionResult> CommentPost(int id, CreateCommentDTO dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var trimmedContent = dto.Content?.Trim();
+
+            if (string.IsNullOrWhiteSpace(trimmedContent))
+            {
+                return BadRequest("Comment cannot be empty.");
+            }
+
+            var postExists = await _context.Posts.AnyAsync(p => p.PostId == id && p.Status == "Approved");
+            if (!postExists)
+            {
+                return NotFound("Post not found.");
+            }
 
             var comment = new Comment
             {
-                Content = dto.Content,
+                Content = trimmedContent,
                 PostId = id,
                 UserId = userId
             };
@@ -121,11 +151,20 @@ namespace ProfileBook.API.Controllers
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            return Ok("Comment added.");
+            var username = await _context.Users
+                .Where(u => u.UserId == userId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync() ?? User.FindFirstValue(ClaimTypes.Name) ?? "You";
+
+            return Ok(new CommentResponseDTO
+            {
+                CommentId = comment.CommentId,
+                Content = comment.Content,
+                Username = username,
+                CreatedAt = comment.CreatedAt
+            });
         }
 
-        // PUT: api/post/{id}/approve 
-        // Admin only - approve a pending post so it shows in the feed
         [HttpPut("{id}/approve")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApprovePost(int id)
@@ -139,8 +178,6 @@ namespace ProfileBook.API.Controllers
             return Ok("Post approved.");
         }
 
-        // GET: api/post/pending 
-        // Admin only - get all posts waiting for approval
         [HttpGet("pending")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetPendingPosts()
@@ -151,43 +188,43 @@ namespace ProfileBook.API.Controllers
                 .Select(p => new PostResponseDTO
                 {
                     PostId = p.PostId,
+                    UserId = p.UserId,
                     Content = p.Content,
                     PostImage = p.PostImage,
                     Status = p.Status,
                     Username = p.User.Username,
-                    CreatedAt = p.CreatedAt
+                    CreatedAt = p.CreatedAt,
+                    LikesCount = 0,
+                    IsLikedByCurrentUser = false,
+                    Comments = new List<CommentResponseDTO>()
                 })
                 .ToListAsync();
 
             return Ok(posts);
         }
-        // POST: api/post/upload 
-        // Upload an image or video file for a post
+
         [HttpPost("upload")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("No file uploaded.");
 
-            // Allowed file types
-            var allowedTypes = new[] {
-        "image/jpeg", "image/png", "image/gif",
-        "video/mp4", "video/mpeg"
-    };
+            var allowedTypes = new[]
+            {
+                "image/jpeg", "image/png", "image/gif",
+                "video/mp4", "video/mpeg"
+            };
 
             if (!allowedTypes.Contains(file.ContentType))
                 return BadRequest("Only images and videos are allowed.");
 
-            // Create uploads folder if it doesn't exist
             var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             if (!Directory.Exists(uploadPath))
                 Directory.CreateDirectory(uploadPath);
 
-            // Generate unique filename
             var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
             var filePath = Path.Combine(uploadPath, fileName);
 
-            // Save file
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
@@ -198,4 +235,3 @@ namespace ProfileBook.API.Controllers
         }
     }
 }
-    

@@ -1,36 +1,70 @@
 <div class="container mt-4">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 rounded">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 rounded message-navbar">
     <div class="container-fluid">
-      <a class="navbar-brand">💬 Messages</a>
-      <button class="btn btn-light" (click)="goHome()">Back to Home</button>
+      <a class="navbar-brand">Messages</a>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-light btn-sm" (click)="refreshInbox()">Refresh</button>
+        <button class="btn btn-light" (click)="goHome()">Back to Home</button>
+      </div>
     </div>
   </nav>
 
+  <div *ngIf="errorMessage" class="alert alert-warning" role="alert">
+    {{ errorMessage }}
+  </div>
+
   <div class="row">
-    <!-- Search Users -->
     <div class="col-md-4">
-      <div class="card shadow-sm mb-3">
+      <div class="card shadow-sm mb-3 message-sidebar">
         <div class="card-body">
           <h6>Find a User</h6>
           <div class="input-group">
             <input type="text" class="form-control"
               [(ngModel)]="searchQuery"
-              placeholder="Search username..."/>
-            <button class="btn btn-primary" (click)="searchUsers()">🔍</button>
+              placeholder="Search username..."
+              (keyup.enter)="searchUsers()"/>
+            <button class="btn btn-primary" (click)="searchUsers()">Search</button>
           </div>
-          <div *ngFor="let user of searchResults" class="mt-2">
-            <button class="btn btn-outline-primary btn-sm w-100"
+
+          <div *ngIf="searchResults.length > 0" class="mt-3">
+            <div class="section-label">Search Results</div>
+            <button
+              *ngFor="let user of searchResults"
+              class="conversation-btn"
               (click)="selectUser(user)">
-              {{ user.username }}
+              <span class="conversation-name">{{ user.username }}</span>
             </button>
+          </div>
+
+          <div class="mt-4">
+            <div class="section-label">Recent Chats</div>
+
+            <div *ngIf="loadingRecent && recentConversations.length === 0" class="small text-muted mt-2">
+              Loading previous chats...
+            </div>
+
+            <button
+              *ngFor="let conversation of recentConversations"
+              class="conversation-btn"
+              [class.active]="selectedUser?.username === conversation.username"
+              (click)="selectUser(conversation)">
+              <span class="conversation-header">
+                <span class="conversation-name">{{ conversation.username }}</span>
+                <small class="text-muted">{{ conversation.timeStamp | date:'short' }}</small>
+              </span>
+              <span class="conversation-preview">{{ conversation.lastMessage }}</span>
+            </button>
+
+            <div *ngIf="!loadingRecent && recentConversations.length === 0" class="text-muted small mt-2">
+              Your previous chats will appear here.
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Chat Window -->
     <div class="col-md-8">
-      <div class="card shadow-sm">
+      <div class="card shadow-sm message-card">
         <div class="card-body">
           <div *ngIf="!selectedUser" class="text-center text-muted mt-4">
             <h5>Select a user to start chatting</h5>
@@ -40,17 +74,17 @@
             <h5>Chat with {{ selectedUser.username }}</h5>
             <hr/>
 
-            <div class="chat-box mb-3"
-              style="height:350px; overflow-y:auto; border:1px solid #ddd; padding:10px; border-radius:8px;">
-              <div *ngFor="let msg of messages" class="mb-2">
-                <strong class="text-primary">{{ msg.sender }}:</strong>
-                {{ msg.messageContent }}
-                <small class="text-muted ms-2">
-                  {{ msg.timeStamp | date:'shortTime' }}
-                </small>
+            <div class="chat-box mb-3">
+              <div *ngFor="let msg of messages" class="message-row" [class.mine]="msg.isMine">
+                <div class="message-bubble">
+                  <strong>{{ msg.isMine ? 'You' : msg.sender }}:</strong>
+                  <div>{{ msg.messageContent }}</div>
+                  <small>{{ msg.timeStamp | date:'shortTime' }}</small>
+                </div>
               </div>
+
               <div *ngIf="messages.length === 0" class="text-muted text-center">
-                No messages yet. Say hello! 👋
+                No messages yet. Say hello!
               </div>
             </div>
 
@@ -60,7 +94,7 @@
                 placeholder="Type a message..."
                 (keyup.enter)="sendMessage()"/>
               <button class="btn btn-primary" (click)="sendMessage()">
-                Send 📤
+                Send
               </button>
             </div>
           </div>

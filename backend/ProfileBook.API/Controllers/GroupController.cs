@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProfileBook.API.Data;
@@ -7,15 +7,11 @@ using System.Security.Claims;
 
 namespace ProfileBook.API.Controllers
 {
-    // This controller handles all group-related operations
-    // Admins can create and delete groups
-    // Users can join and leave groups
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]// All endpoints require login
+    [Authorize]
     public class GroupController : ControllerBase
     {
-        // AppDbContext gives us access to the database
         private readonly AppDbContext _context;
 
         public GroupController(AppDbContext context)
@@ -23,27 +19,35 @@ namespace ProfileBook.API.Controllers
             _context = context;
         }
 
-        // GET: api/group
-        // Get all groups with their member count
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllGroups()
         {
+            int? currentUserId = null;
+            var currentUserClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(currentUserClaim, out var parsedUserId))
+            {
+                currentUserId = parsedUserId;
+            }
+
             var groups = await _context.Groups
+                .AsNoTracking()
                 .Include(g => g.Members)
-                .Select(g => new {
+                .OrderByDescending(g => g.CreatedAt)
+                .Select(g => new
+                {
                     g.GroupId,
                     g.Name,
                     g.Description,
                     g.CreatedAt,
-                    MemberCount = g.Members.Count
+                    MemberCount = g.Members.Count,
+                    IsMember = currentUserId.HasValue && g.Members.Any(member => member.UserId == currentUserId.Value)
                 })
                 .ToListAsync();
 
             return Ok(groups);
         }
 
-        // POST: api/group
-        // Admin only - create a new group
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateGroup([FromBody] Group dto)
@@ -57,37 +61,57 @@ namespace ProfileBook.API.Controllers
             _context.Groups.Add(group);
             await _context.SaveChangesAsync();
 
-            return Ok("Group created.");
+            return Ok(new
+            {
+                group.GroupId,
+                group.Name,
+                group.Description,
+                group.CreatedAt,
+                MemberCount = 0,
+                IsMember = false
+            });
         }
 
-        // POST: api/group/{id}/join
-        // Toggle join/leave a group
-        // If user is already a member, they leave. Otherwise they join.
         [HttpPost("{id}/join")]
         public async Task<IActionResult> JoinGroup(int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            var groupExists = await _context.Groups.AnyAsync(g => g.GroupId == id);
+            if (!groupExists)
+            {
+                return NotFound("Group not found.");
+            }
+
             var existing = await _context.GroupMembers
-                .Where(gm => gm.GroupId == id && gm.UserId == userId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(gm => gm.GroupId == id && gm.UserId == userId);
+
+            var isMember = existing == null;
 
             if (existing != null)
             {
                 _context.GroupMembers.Remove(existing);
-                await _context.SaveChangesAsync();
-                return Ok("Left group.");
+            }
+            else
+            {
+                _context.GroupMembers.Add(new GroupMember
+                {
+                    GroupId = id,
+                    UserId = userId
+                });
             }
 
-            var member = new GroupMember { GroupId = id, UserId = userId };
-            _context.GroupMembers.Add(member);
             await _context.SaveChangesAsync();
 
-            return Ok("Joined group.");
+            var memberCount = await _context.GroupMembers.CountAsync(gm => gm.GroupId == id);
+
+            return Ok(new
+            {
+                isMember,
+                memberCount
+            });
         }
 
-        // DELETE: api/group/{id}
-        // Admin only - delete a group and all its members
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGroup(int id)

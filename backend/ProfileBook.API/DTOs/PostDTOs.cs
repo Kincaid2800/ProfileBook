@@ -1,4 +1,4 @@
-﻿namespace ProfileBook.API.DTOs
+namespace ProfileBook.API.DTOs
 {
     public class CreatePostDTO
     {
@@ -9,12 +9,14 @@
     public class PostResponseDTO
     {
         public int PostId { get; set; }
+        public int UserId { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? PostImage { get; set; }
         public string Status { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public int LikesCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
         public List<CommentResponseDTO> Comments { get; set; } = new();
     }
 
