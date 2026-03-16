@@ -1,4 +1,4 @@
-# ProfileBook
+﻿# ProfileBook
 
 <div align="center">
 
@@ -10,7 +10,7 @@
 
 **A full-stack social media platform built with Angular and ASP.NET Core**
 
-[Features](#features) • [Tech Stack](#tech-stack) • [Project Structure](#project-structure) • [Getting Started](#getting-started) • [API Documentation](#api-documentation) • [Testing](#testing)
+[Features](#features) | [Tech Stack](#tech-stack) | [Project Structure](#project-structure) | [Getting Started](#getting-started) | [API Documentation](#api-documentation) | [Testing](#testing)
 
 </div>
 
@@ -56,7 +56,7 @@ ProfileBook is a full-stack social media web application that connects people vi
 | Authentication | JWT bearer tokens, BCrypt password hashing |
 | File Storage | Server-side file uploads for posts and profile images |
 | API Docs | Swagger UI |
-| Testing | Angular unit tests |
+| Verification | Angular unit tests and end-to-end smoke validation |
 | Version Control | Git and GitHub |
 
 ## Project Structure
@@ -76,6 +76,7 @@ ProfileBook/
 |       |-- appsettings.json
 |       `-- schema.sql
 |-- documentation/
+|-- scripts/
 |-- public/
 |-- src/
 |   `-- app/
@@ -108,8 +109,8 @@ cd ProfileBook
 cd backend/ProfileBook.API
 dotnet restore
 
-# Update appsettings.json with your local SQL Server connection string if needed
-dotnet ef database update
+# Update appsettings.json with your local SQL Server connection string if needed.
+# The API applies migrations on startup and seeds the default admin account if missing.
 dotnet run
 ```
 
@@ -134,8 +135,10 @@ Frontend URL:
 
 | Role | Email | Password |
 |---|---|---|
-| Admin | admin@profilebook.com | Admin@123 |
+| Admin | admin@test.com | Admin@123 |
 | User | Register in the app | Create your own |
+
+The backend seeds the demo admin account automatically if it does not already exist in the local database.
 
 ## Database Schema
 
@@ -183,6 +186,12 @@ Run frontend unit tests:
 ng test
 ```
 
+Run the end-to-end smoke test after both frontend and backend are running:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\e2e-smoke.ps1
+```
+
 ## Documentation
 
 Project documentation is available in the `documentation/` folder:
@@ -191,6 +200,7 @@ Project documentation is available in the `documentation/` folder:
 - `jwt authentication.md`
 - `api design.md`
 - `project report.md`
+- `e2e smoke test.md`
 
 ## Author
 

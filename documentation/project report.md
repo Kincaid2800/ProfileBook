@@ -1,4 +1,4 @@
-# ProfileBook Project Report
+﻿# ProfileBook Project Report
 
 ## Executive Summary
 
@@ -30,6 +30,7 @@ The solution follows a clean client-server architecture:
 - SQL Server stores normalized relational data.
 - JWT tokens secure authenticated communication.
 - Local storage is used on the frontend to persist session state.
+- A shared application shell provides a consistent app-level header and footer.
 
 This architecture is suitable for academic presentation, portfolio showcase, and small freelance delivery because it is practical, understandable, and demonstrably full stack.
 
@@ -40,6 +41,7 @@ This architecture is suitable for academic presentation, portfolio showcase, and
 - User registration with client-side validation.
 - User login with role-aware redirection.
 - Logout and session persistence through stored token and user metadata.
+- Shared application shell with app-level header and footer for consistent layout structure.
 
 ### Home Feed Module
 
@@ -83,7 +85,7 @@ This architecture is suitable for academic presentation, portfolio showcase, and
 
 ## Backend Capabilities
 
-Although this repository snapshot contains the Angular frontend, the integrated project design and service layer confirm the following backend capabilities:
+The backend project inside this repository provides the following capabilities:
 
 - authentication and JWT issuance,
 - user account management,
@@ -92,6 +94,7 @@ Although this repository snapshot contains the Angular frontend, the integrated 
 - direct message storage and retrieval,
 - report submission and admin review,
 - group administration and membership management,
+- automatic migration and demo admin seeding for fresh local setup,
 - file upload support for posts and profile pictures,
 - Swagger-based API discoverability.
 
@@ -102,7 +105,8 @@ ProfileBook includes a role-aware authentication model with the following behavi
 - unauthenticated users must log in to access protected features,
 - administrators are redirected to a dedicated dashboard,
 - admin-only actions are separated from standard user actions,
-- bearer tokens are attached to protected HTTP requests.
+- bearer tokens are attached to protected HTTP requests,
+- the backend can seed the default demo admin account automatically for a fresh local setup.
 
 This approach demonstrates a clear understanding of authorization boundaries and session control in modern web applications.
 
@@ -126,7 +130,18 @@ The project shows several technical strengths that are valuable in a freelancer-
 - practical validation in authentication forms,
 - documented route structure,
 - unit test coverage in the Angular application,
+- repeatable smoke-test validation for the running system,
 - polished README and implementation narrative.
+
+## Testing and Validation
+
+The project includes both component-level testing and a repeatable end-to-end smoke-test workflow.
+
+- Angular unit tests cover core frontend components and the authentication service.
+- A dedicated smoke-test script validates frontend reachability, backend reachability, JWT login, and protected API access.
+- Swagger output provides an additional verification layer that backend controllers are registered correctly.
+
+This combination strengthens confidence in both compile-time correctness and real runtime behavior.
 
 ## Business and Product Value
 
