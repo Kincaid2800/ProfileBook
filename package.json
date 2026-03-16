@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test --watch=false",
+    "test:watch": "ng test",
+    "test:unit": "ng test --watch=false --include ../tests/unit",
+    "test:e2e": "ng test --watch=false --include ../tests/e2e",
+    "test:all": "npm run test:unit && npm run test:e2e"
   },
   "private": true,
   "packageManager": "npm@11.9.0",
