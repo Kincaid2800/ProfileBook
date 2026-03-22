@@ -6,6 +6,7 @@ import { PostService } from '../../services/post';
 import { UserService } from '../../services/user';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group';
+import { ToastService } from '../../services/toast';
 
 
  //AdminComponent - Dashboard for admin users
@@ -44,6 +45,7 @@ export class AdminComponent implements OnInit {
   private userService = inject(UserService);
   private groupService = inject(GroupService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   
    //Lifecycle hook - runs when component initializes
@@ -76,6 +78,7 @@ export class AdminComponent implements OnInit {
    */
   async approvePost(postId: number) {
     await this.postService.approvePost(postId);
+    this.toastService.show('Post approved!', 'success');
     await this.loadAll();
   }
 
@@ -85,6 +88,7 @@ export class AdminComponent implements OnInit {
    */
   async deleteUser(userId: number) {
     await this.userService.deleteUser(userId);
+    this.toastService.show('User deleted.', 'info');
     await this.loadAll();
   }
 
@@ -115,10 +119,11 @@ export class AdminComponent implements OnInit {
   async saveEdit(userId: number) {
     try {
       await this.userService.updateUser(userId, this.editUsername, this.editEmail);
+      this.toastService.show('User updated successfully!', 'success');
       this.cancelEdit();
       await this.loadAll();
     } catch (error) {
-      alert('Failed to update user.');
+      this.toastService.show('Failed to update user.', 'error');
     }
   }
 
@@ -131,11 +136,12 @@ export class AdminComponent implements OnInit {
     if (!this.newGroupName) return;
     try {
       await this.groupService.createGroup(this.newGroupName, this.newGroupDescription);
+      this.toastService.show('Group created!', 'success');
       this.newGroupName = '';
       this.newGroupDescription = '';
       await this.loadAll();
     } catch (error) {
-      alert('Failed to create group.');
+      this.toastService.show('Failed to create group.', 'error');
     }
   }
 
@@ -146,9 +152,10 @@ export class AdminComponent implements OnInit {
   async deleteGroup(groupId: number) {
     try {
       await this.groupService.deleteGroup(groupId);
+      this.toastService.show('Group deleted.', 'info');
       await this.loadAll();
     } catch (error) {
-      alert('Failed to delete group.');
+      this.toastService.show('Failed to delete group.', 'error');
     }
   }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast';
 
 
  // LoginComponent — Handles user authentication
@@ -34,6 +35,7 @@ export class LoginComponent {
   // inject() is the modern Angular standalone alternative to constructor injection
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   
    // Client-side validation — runs BEFORE the API call
@@ -97,7 +99,7 @@ export class LoginComponent {
       }
     } catch (error) {
       // API returned 401 Unauthorized — wrong email or password
-      this.errorMessage = 'Invalid email or password.';
+      this.toastService.show('Invalid email or password.', 'error');
     }
   }
 }

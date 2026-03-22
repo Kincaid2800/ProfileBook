@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GroupService, GroupSummary } from '../../services/group';
+import { ToastService } from '../../services/toast';
 
 @Component({
   selector: 'app-groups',
@@ -13,12 +14,12 @@ import { GroupService, GroupSummary } from '../../services/group';
 export class GroupsComponent implements OnInit, OnDestroy {
   groups: GroupSummary[] = [];
   loading = true;
-  errorMessage = '';
   private joiningGroupIds = new Set<number>();
   private refreshTimerId: number | null = null;
 
   private groupService = inject(GroupService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   async ngOnInit() {
     this.groups = this.groupService.getCachedGroups();
@@ -48,9 +49,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
     try {
       this.groups = await this.groupService.getAllGroups();
-      this.errorMessage = '';
     } catch (error) {
-      this.errorMessage = 'Unable to refresh groups right now. Showing the latest available list.';
+      this.toastService.show('Unable to refresh groups. Showing cached list.', 'error');
       this.groups = this.groupService.getCachedGroups();
       console.error('Error loading groups:', error);
     } finally {

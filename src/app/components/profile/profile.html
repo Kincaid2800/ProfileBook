@@ -30,7 +30,6 @@
           <input type="file" hidden accept="image/*"
             (change)="onProfilePicSelected($event)"/>
         </label>
-        <div *ngIf="uploadMessage" class="text-success mt-1">{{ uploadMessage }}</div>
       </div>
 
       <h4 class="fw-bold mb-1">{{ username || 'Loading...' }}</h4>

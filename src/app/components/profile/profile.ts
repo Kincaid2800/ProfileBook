@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
+import { ToastService } from '../../services/toast';
 
 /**
  * ProfileComponent — Displays and manages the logged-in user's profile
@@ -30,13 +31,11 @@ export class ProfileComponent implements OnInit {
   // ISO date string from backend — formatted in template with | date:'mediumDate'
   joinedAt = '';
 
-  // Shown below Change Photo button after upload attempt (success or failure)
-  uploadMessage = '';
-
   // Modern inject() pattern for standalone components
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   /**
    * ChangeDetectorRef is injected to manually trigger Angular's change detection
@@ -101,12 +100,12 @@ export class ProfileComponent implements OnInit {
 
       // Update displayed image immediately — result.url is e.g. /profiles/guid.jpg
       this.profileImage = result.url;
-      this.uploadMessage = 'Profile picture updated!';
+      this.toastService.show('Profile picture updated!', 'success');
 
       // Force re-render so the new image appears without requiring a page reload
       this.cdr.detectChanges();
     } catch (error) {
-      this.uploadMessage = 'Failed to upload picture.';
+      this.toastService.show('Failed to upload picture.', 'error');
     }
   }
 

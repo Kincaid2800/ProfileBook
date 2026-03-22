@@ -49,10 +49,6 @@
         </button>
       </div>
 
-      <div *ngIf="postMessage"
-        class="alert alert-info mt-3 mb-0 py-2 rounded-3" style="font-size:0.88rem;">
-        {{ postMessage }}
-      </div>
     </div>
 
     <div *ngFor="let post of posts; trackBy: trackByPostId" class="card post-card shadow-sm p-3">

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { ToastService } from '../../services/toast';
 
 @Component({
   selector: 'app-register',
@@ -16,10 +17,10 @@ export class RegisterComponent {
   email = '';
   password = '';
   errorMessage = '';
-  successMessage = '';
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   validate() {
     if (!this.username) {
@@ -52,14 +53,13 @@ export class RegisterComponent {
 
   async register() {
     this.errorMessage = '';
-    this.successMessage = '';
     if (!this.validate()) return;
     try {
       await this.authService.register(this.username, this.email, this.password);
-      this.successMessage = 'Registered successfully! Redirecting to login...';
+      this.toastService.show('Registered successfully! Redirecting to login...', 'success');
       setTimeout(() => this.router.navigate(['/login']), 2000);
     } catch (error) {
-      this.errorMessage = 'Registration failed. Email may already exist.';
+      this.toastService.show('Registration failed. Email may already exist.', 'error');
     }
   }
 }

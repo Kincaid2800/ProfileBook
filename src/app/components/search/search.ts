@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user';
+import { ToastService } from '../../services/toast';
 
 @Component({
   selector: 'app-search',
@@ -18,6 +19,7 @@ export class SearchComponent {
 
   private userService = inject(UserService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   async searchUsers() {
     if (!this.searchQuery.trim()) return;
@@ -34,9 +36,9 @@ export class SearchComponent {
     if (!reason) return;
     try {
       await this.userService.reportUser(userId, reason);
-      alert('User reported successfully!');
+      this.toastService.show('User reported successfully!', 'success');
     } catch (error) {
-      alert('Failed to report user.');
+      this.toastService.show('Failed to report user.', 'error');
     }
   }
 

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
 import { ChatMessage, MessageService } from '../../services/message';
+import { ToastService } from '../../services/toast';
 
 interface ConversationSummary {
   key: string;
@@ -30,7 +31,6 @@ export class MessagesComponent implements OnInit, OnDestroy {
   newMessage = '';
   currentUsername = '';
   loadingRecent = true;
-  errorMessage = '';
 
   private cacheKeyPrefix = 'profilebook_recent_chats_';
   private refreshTimerId: number | null = null;
@@ -38,6 +38,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   async ngOnInit() {
     if (!this.authService.isLoggedIn()) {
@@ -169,10 +170,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
         await this.selectUser(this.recentConversations[0]);
       }
 
-      this.errorMessage = '';
     } catch (error) {
       this.recentConversations = this.readCachedConversations();
-      this.errorMessage = 'Unable to refresh previous chats right now. Showing the latest available list.';
+      this.toastService.show('Unable to refresh chats. Showing cached list.', 'error');
       console.error('Error loading recent conversations:', error);
     } finally {
       this.loadingRecent = false;
@@ -199,7 +199,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     if (!this.selectedUser.userId) {
-      this.errorMessage = 'Open this chat by searching the user once so the conversation can be linked.';
+      this.toastService.show('Search this user once to link the conversation.', 'info');
       this.messages = [];
       return;
     }
@@ -210,7 +210,6 @@ export class MessagesComponent implements OnInit, OnDestroy {
         ...message,
         isMine: message.isMine || message.sender.toLowerCase() === this.currentUsername.toLowerCase()
       }));
-      this.errorMessage = '';
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -236,7 +235,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     if (!this.selectedUser.userId) {
-      this.errorMessage = 'Search and select the user once before sending a message.';
+      this.toastService.show('Search and select the user before sending a message.', 'info');
       return;
     }
 
@@ -245,7 +244,6 @@ export class MessagesComponent implements OnInit, OnDestroy {
       this.newMessage = '';
       await this.loadMessages();
       await this.loadRecentConversations();
-      this.errorMessage = '';
     } catch (error) {
       console.error('Error sending message:', error);
     }

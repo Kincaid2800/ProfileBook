@@ -24,10 +24,6 @@
       </div>
     </div>
 
-    <div *ngIf="errorMessage" class="alert alert-warning groups-alert" role="alert">
-      {{ errorMessage }}
-    </div>
-
     <div *ngIf="loading && groups.length === 0" class="groups-state card shadow-sm">
       <h5>Loading groups...</h5>
       <p>Fetching the latest group list for you.</p>

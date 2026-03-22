@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { FeedPost, PostComment, PostService } from '../../services/post';
 import { UserService } from '../../services/user';
+import { ToastService } from '../../services/toast';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +17,6 @@ import { UserService } from '../../services/user';
 export class HomeComponent implements OnInit {
   posts: FeedPost[] = [];
   newPostContent = '';
-  postMessage = '';
   commentTexts: { [key: number]: string } = {};
   username = '';
   selectedFile: File | null = null;
@@ -27,6 +27,7 @@ export class HomeComponent implements OnInit {
   private postService = inject(PostService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   async ngOnInit() {
     this.username = this.authService.getUsername() || '';
@@ -64,13 +65,13 @@ export class HomeComponent implements OnInit {
         fileUrl = uploadResult.url;
       }
       await this.postService.createPost(this.newPostContent, fileUrl);
-      this.postMessage = 'Post submitted for approval!';
+      this.toastService.show('Post submitted for approval!', 'success');
       this.newPostContent = '';
       this.selectedFile = null;
       this.filePreview = null;
       this.fileType = '';
     } catch (error) {
-      this.postMessage = 'Failed to create post.';
+      this.toastService.show('Failed to create post.', 'error');
     }
   }
 
@@ -169,9 +170,9 @@ export class HomeComponent implements OnInit {
 
     try {
       await this.userService.reportUser(userId, reason);
-      alert('User reported successfully!');
+      this.toastService.show('User reported successfully!', 'success');
     } catch (error) {
-      alert('Failed to report user.');
+      this.toastService.show('Failed to report user.', 'error');
     }
   }
 
