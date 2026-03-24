@@ -5,12 +5,19 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { FeedPost, PostComment, PostService } from '../../services/post';
 import { UserService } from '../../services/user';
+// ToastService replaces the old inline error string approach —
+// one call here and the notification appears globally without touching the template
 import { ToastService } from '../../services/toast';
+// TimeAgoPipe converts raw ISO timestamps (e.g. "2026-03-24T10:00:00") to "2 hours ago"
+// so post dates feel natural rather than like log entries
+import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  // TimeAgoPipe declared here in imports so we can use it directly in the template
+  // without a separate shared module — standalone components handle their own dependencies
+  imports: [CommonModule, FormsModule, TimeAgoPipe],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -18,6 +25,9 @@ export class HomeComponent implements OnInit {
   posts: FeedPost[] = [];
   newPostContent = '';
   commentTexts: { [key: number]: string } = {};
+  // 500 characters felt like the right ceiling — long enough for a real thought,
+  // short enough to keep the feed scannable. readonly prevents accidental mutation.
+  readonly maxPostLength = 500;
   username = '';
   selectedFile: File | null = null;
   filePreview: string | null = null;
@@ -27,6 +37,7 @@ export class HomeComponent implements OnInit {
   private postService = inject(PostService);
   private userService = inject(UserService);
   private router = inject(Router);
+  // ToastService injected so we can replace raw try/catch silent failures with visible user feedback
   private toastService = inject(ToastService);
 
   async ngOnInit() {
@@ -65,12 +76,15 @@ export class HomeComponent implements OnInit {
         fileUrl = uploadResult.url;
       }
       await this.postService.createPost(this.newPostContent, fileUrl);
+      // "submitted for approval" rather than "posted" — honest with the user that an admin
+      // still needs to approve it before it appears in the public feed
       this.toastService.show('Post submitted for approval!', 'success');
       this.newPostContent = '';
       this.selectedFile = null;
       this.filePreview = null;
       this.fileType = '';
     } catch (error) {
+      // Show a toast on failure — previously this was a silent console.error that the user never saw
       this.toastService.show('Failed to create post.', 'error');
     }
   }
@@ -170,6 +184,8 @@ export class HomeComponent implements OnInit {
 
     try {
       await this.userService.reportUser(userId, reason);
+      // Toast replaces the old alert() call — same user feedback, but non-blocking
+      // and consistent with every other notification in the app
       this.toastService.show('User reported successfully!', 'success');
     } catch (error) {
       this.toastService.show('Failed to report user.', 'error');

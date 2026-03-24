@@ -3,21 +3,30 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+// ToastService handles API-level errors (wrong credentials) — validation errors stay inline
+// in the form because they're directly tied to a specific field, which is better UX than a toast
 import { ToastService } from '../../services/toast';
+// AutofocusDirective puts the cursor in the email field as soon as the login page loads —
+// saves one click, which matters on a page the user visits every session
+import { AutofocusDirective } from '../../directives/autofocus.directive';
+// TrimInputDirective cleans email on blur — "  user@test.com  " becomes "user@test.com"
+// before it even reaches the validate() check, preventing false "invalid email" errors
+import { TrimInputDirective } from '../../directives/trim-input.directive';
 
-
- // LoginComponent — Handles user authentication
- //Renders the split-panel login page with email/password form
- //On success: redirects Admin → /admin, regular User → /home
- //Route: /login
- 
+// LoginComponent — Handles user authentication
+// Renders the split-panel login page with email/password form
+// On success: redirects Admin → /admin, regular User → /home
+// Route: /login
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,   // Needed for *ngIf in template
-    FormsModule,    // Needed for [(ngModel)] two-way binding
-    RouterLink      // Needed for routerLink="/register" in template
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    // Both directives registered here so Angular resolves them when scanning the login template
+    AutofocusDirective,
+    TrimInputDirective
   ],
   templateUrl: './login.html',
   styleUrl: './login.css'
@@ -35,6 +44,8 @@ export class LoginComponent {
   // inject() is the modern Angular standalone alternative to constructor injection
   private authService = inject(AuthService);
   private router = inject(Router);
+  // ToastService used only for the API error path — validation errors still go to errorMessage
+  // because they need to sit right next to the form fields, not float in the corner
   private toastService = inject(ToastService);
 
   
@@ -98,7 +109,9 @@ export class LoginComponent {
         this.router.navigate(['/home']);
       }
     } catch (error) {
-      // API returned 401 Unauthorized — wrong email or password
+      // API returned 401 Unauthorized — wrong credentials.
+      // Toast is used here (not errorMessage) because this is a backend response,
+      // not a field-level validation issue — it doesn't belong anchored to any single input
       this.toastService.show('Invalid email or password.', 'error');
     }
   }

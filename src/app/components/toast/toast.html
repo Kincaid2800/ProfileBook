@@ -1,4 +1,9 @@
+<!-- The container sits in the bottom-right corner (fixed position via CSS) and stacks toasts
+     vertically. It lives in app.html outside the router-outlet so it persists across all routes. -->
 <div class="toast-container">
+
+  <!-- Each toast gets class.toast-success / error / info applied dynamically — this drives
+       the border-left color and icon color without needing separate component variants -->
   <div
     *ngFor="let toast of toastService.toasts"
     class="toast-item"
@@ -6,6 +11,8 @@
     [class.toast-error]="toast.type === 'error'"
     [class.toast-info]="toast.type === 'info'">
 
+    <!-- HTML entities for the icons so we avoid importing an icon library just for three symbols.
+         ✓ = success, ✗ = error, ℹ = info -->
     <span class="toast-icon">
       <ng-container *ngIf="toast.type === 'success'">&#10003;</ng-container>
       <ng-container *ngIf="toast.type === 'error'">&#10007;</ng-container>
@@ -14,6 +21,9 @@
 
     <span class="toast-message">{{ toast.message }}</span>
 
+    <!-- Clicking the X calls dismiss() immediately — the auto-dismiss timer is still running
+         in the background, but filter() in the service handles the case where the toast
+         is already gone before the timer fires -->
     <button class="toast-close" (click)="toastService.dismiss(toast.id)">&#x2715;</button>
   </div>
 </div>

@@ -1,15 +1,23 @@
+/* Fixed to bottom-right because that's where users naturally expect notifications —
+   it keeps the primary content area (center/top) uninterrupted while they're reading */
 .toast-container {
   position: fixed;
   bottom: 1.75rem;
   right: 1.75rem;
+  /* z-index 9999 puts toasts above modals and dropdowns — they should never be hidden */
   z-index: 9999;
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  /* 360px is wide enough for a sentence but won't dominate the screen on mobile */
   max-width: 360px;
+  /* pointer-events: none on the container means clicks pass through the gap between toasts —
+     only the actual toast items (which re-enable pointer events) are clickable */
   pointer-events: none;
 }
 
+/* Dark background (#1e1e2e) works on both light and dark page themes without needing
+   to check the user's preference — it's always readable with white text */
 .toast-item {
   display: flex;
   align-items: center;
@@ -21,11 +29,14 @@
   font-size: 0.88rem;
   font-weight: 500;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
-  pointer-events: all;
+  pointer-events: all; /* re-enable so the close button is clickable */
   animation: toast-slide-in 0.25s ease;
+  /* Border starts transparent so all three type variants just override the color */
   border-left: 4px solid transparent;
 }
 
+/* Slide in from the right — feels natural because that's where the toast stack lives.
+   110% ensures it starts fully off-screen even for wide screens. */
 @keyframes toast-slide-in {
   from {
     transform: translateX(110%);
@@ -37,25 +48,30 @@
   }
 }
 
+/* Left border color is the primary visual indicator of toast type —
+   green = good news, red = something went wrong, blue = neutral info */
 .toast-success { border-left-color: #22c55e; }
 .toast-error   { border-left-color: #ef4444; }
 .toast-info    { border-left-color: #3b82f6; }
 
 .toast-icon {
   font-size: 1rem;
-  flex-shrink: 0;
+  flex-shrink: 0; /* prevent icon from squishing when the message is long */
   font-weight: 700;
 }
 
+/* Icon color matches the border so the type signal is reinforced twice on the same toast */
 .toast-success .toast-icon { color: #22c55e; }
 .toast-error   .toast-icon { color: #ef4444; }
 .toast-info    .toast-icon { color: #3b82f6; }
 
+/* flex: 1 makes the message fill all available space, pushing the close button to the far right */
 .toast-message {
   flex: 1;
   line-height: 1.4;
 }
 
+/* Close button is dim by default so it doesn't compete with the message text visually */
 .toast-close {
   background: none;
   border: none;
@@ -65,9 +81,10 @@
   line-height: 1;
   padding: 0 0.15rem;
   flex-shrink: 0;
-  transition: color 0.15s;
+  transition: color 0.15s; /* quick fade so it feels responsive without being distracting */
 }
 
+/* Brighten to full white on hover — makes it clear the X is clickable */
 .toast-close:hover {
   color: #fff;
 }

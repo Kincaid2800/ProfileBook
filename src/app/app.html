@@ -1,2 +1,7 @@
+<!-- router-outlet is where Angular injects the current page's component based on the URL -->
 <router-outlet></router-outlet>
+
+<!-- app-toast sits here at the root level, outside the router-outlet, so it never gets
+     destroyed during navigation — a toast triggered on the home page will still show
+     after Angular swaps in a different route component -->
 <app-toast></app-toast>

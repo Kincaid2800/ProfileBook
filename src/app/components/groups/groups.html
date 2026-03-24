@@ -41,7 +41,9 @@
 
         <div class="group-meta">
           <span>{{ group.memberCount }} members</span>
-          <span *ngIf="group.createdAt">Created {{ group.createdAt | date:'mediumDate' }}</span>
+          <!-- timeAgo pipe converts the backend ISO date to "Created 2 weeks ago" —
+               more scannable than a full date, and groups don't need exact precision here -->
+          <span *ngIf="group.createdAt">Created {{ group.createdAt | timeAgo }}</span>
         </div>
 
         <button class="join-btn"

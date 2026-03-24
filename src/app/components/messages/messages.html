@@ -46,7 +46,9 @@
               (click)="selectUser(conversation)">
               <span class="conversation-header">
                 <span class="conversation-name">{{ conversation.username }}</span>
-                <small class="text-muted">{{ conversation.timeStamp | date:'short' }}</small>
+                <!-- timeAgo here instead of a full date — in a chat sidebar you want to scan quickly.
+                     "5 mins ago" tells you this conversation is active; "Mar 14" tells you nothing useful -->
+                <small class="text-muted">{{ conversation.timeStamp | timeAgo }}</small>
               </span>
               <span class="conversation-preview">{{ conversation.lastMessage }}</span>
             </button>
@@ -75,6 +77,9 @@
                 <div class="message-bubble">
                   <strong>{{ msg.isMine ? 'You' : msg.sender }}:</strong>
                   <div>{{ msg.messageContent }}</div>
+                  <!-- shortTime (e.g. "3:45 PM") kept intentionally here instead of timeAgo —
+                       inside a conversation you want the exact clock time, not a relative label.
+                       "2 hours ago" would be useless if you're trying to recall when something was said. -->
                   <small>{{ msg.timeStamp | date:'shortTime' }}</small>
                 </div>
               </div>
@@ -85,8 +90,12 @@
             </div>
 
             <div class="input-group">
+              <!-- appTrimInput: strips leading/trailing spaces before sendMessage() fires —
+                   prevents sending a message that's just a bunch of spaces, which would
+                   appear as an empty bubble on the receiver's side -->
               <input type="text" class="form-control"
                 [(ngModel)]="newMessage"
+                appTrimInput
                 placeholder="Type a message..."
                 (keyup.enter)="sendMessage()"/>
               <button class="btn btn-primary" (click)="sendMessage()">

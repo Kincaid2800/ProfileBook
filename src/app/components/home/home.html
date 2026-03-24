@@ -17,10 +17,28 @@
     <div class="card create-post-card shadow-sm mb-4">
       <div class="d-flex align-items-start mb-3">
         <div class="avatar me-3">{{ username.charAt(0).toUpperCase() }}</div>
-        <textarea class="form-control" rows="3"
-          [(ngModel)]="newPostContent"
-          placeholder="What's on your mind, {{ username }}?">
-        </textarea>
+        <div class="flex-grow-1">
+          <textarea class="form-control" rows="3"
+            [(ngModel)]="newPostContent"
+            [maxlength]="maxPostLength"
+            placeholder="What's on your mind, {{ username }}?">
+          </textarea>
+          <!-- Character counter: three-state color feedback so the user knows where they stand
+               without needing to count manually -->
+          <div class="d-flex justify-content-end mt-1">
+            <!-- text-danger kicks in at exactly maxPostLength (500) — the user has hit the wall,
+                 [maxlength] on the textarea already blocks further typing at this point -->
+            <!-- text-warning kicks in at 85% of 500 = 425 chars — gives the user a heads-up
+                 before they hit the hard limit so they can edit rather than get cut off -->
+            <!-- text-muted is the neutral default — no urgency, just informational -->
+            <small [class.text-danger]="newPostContent.length >= maxPostLength"
+                   [class.text-warning]="newPostContent.length >= maxPostLength * 0.85 && newPostContent.length < maxPostLength"
+                   [class.text-muted]="newPostContent.length < maxPostLength * 0.85"
+                   style="font-size:0.78rem;">
+              {{ newPostContent.length }}/{{ maxPostLength }}
+            </small>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="filePreview" class="mb-3 position-relative">
@@ -43,8 +61,14 @@
             <input type="file" hidden accept="video/*" (change)="onFileSelected($event)"/>
           </label>
         </div>
+        <!-- Two conditions disable the Post button:
+             1. !newPostContent.trim() — prevents posting blank or whitespace-only content
+             2. newPostContent.length > maxPostLength — safety net in case [maxlength] is bypassed
+                (e.g. pasting content programmatically), so the API never receives an oversized payload -->
         <button class="btn btn-primary px-4 rounded-pill fw-bold"
-          style="font-size:0.9rem;" (click)="createPost()">
+          style="font-size:0.9rem;"
+          [disabled]="!newPostContent.trim() || newPostContent.length > maxPostLength"
+          (click)="createPost()">
           Post
         </button>
       </div>
@@ -56,7 +80,8 @@
         <div class="avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
         <div class="post-meta">
           <strong>{{ post.username }}</strong>
-          <div><small>{{ post.createdAt | date:'MMM d, y ? h:mm a' }}</small></div>
+          <!-- timeAgo pipe converts the ISO timestamp from the API into a human-readable string like "3 hours ago" -->
+          <div><small>{{ post.createdAt | timeAgo }}</small></div>
         </div>
       </div>
 
@@ -96,7 +121,7 @@
           <span class="comment-author">{{ comment.username }}</span>
           {{ comment.content }}
           <span class="text-muted ms-2" style="font-size:0.75rem;">
-            {{ comment.createdAt | date:'shortTime' }}
+            {{ comment.createdAt | timeAgo }}
           </span>
         </div>
 

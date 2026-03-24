@@ -1,10 +1,18 @@
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+// TimeAgoPipe used in the conversation sidebar to show "5 mins ago" next to each recent chat —
+// lets the user quickly spot which conversation is most recent without reading full timestamps
+import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
+// TrimInputDirective ensures the message box is cleaned on blur —
+// prevents sending messages that are just spaces (which would be confusing to receive)
+import { TrimInputDirective } from '../../directives/trim-input.directive';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
 import { ChatMessage, MessageService } from '../../services/message';
+// ToastService used for two specific edge cases: when a conversation can't reload (network error)
+// and when the user tries to message someone whose userId couldn't be resolved
 import { ToastService } from '../../services/toast';
 
 interface ConversationSummary {
@@ -18,7 +26,9 @@ interface ConversationSummary {
 @Component({
   selector: 'app-messages',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  // Both TimeAgoPipe and TrimInputDirective must be listed here — standalone components
+  // don't have a shared module to pull from, so each one declares its own dependencies
+  imports: [CommonModule, FormsModule, TimeAgoPipe, TrimInputDirective],
   templateUrl: './messages.html',
   styleUrl: './messages.css'
 })
@@ -38,6 +48,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private messageService = inject(MessageService);
   private router = inject(Router);
+  // Injected to surface the two "silent failure" cases that previously had no user-visible feedback
   private toastService = inject(ToastService);
 
   async ngOnInit() {
@@ -199,6 +210,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     if (!this.selectedUser.userId) {
+      // Info toast explains WHY the messages panel is empty — the userId couldn't be resolved
+      // because this was a cached conversation name with no ID attached. The fix is simple:
+      // search for them once so the system can link the username to a real userId.
       this.toastService.show('Search this user once to link the conversation.', 'info');
       this.messages = [];
       return;

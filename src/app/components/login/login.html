@@ -25,13 +25,21 @@
 
       <div class="form-group">
         <label class="form-label">Email address</label>
+        <!-- appAutofocus: cursor lands here on page load — login is the first thing users do,
+             no point making them click into the field before they can type their email -->
+        <!-- appTrimInput: fires on blur so "  user@site.com  " is cleaned to "user@site.com"
+             before validate() runs its regex check — prevents false "invalid email" rejections -->
         <input type="email" class="auth-input"
           [(ngModel)]="email"
+          appAutofocus
+          appTrimInput
           placeholder="you@example.com"/>
       </div>
 
       <div class="form-group">
         <label class="form-label">Password</label>
+        <!-- No appTrimInput on password — trimming a password would silently break
+             logins for users who intentionally have spaces in their password -->
         <input type="password" class="auth-input"
           [(ngModel)]="password"
           placeholder="Enter your password"

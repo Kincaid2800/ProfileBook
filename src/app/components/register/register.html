@@ -25,20 +25,31 @@
 
       <div class="form-group">
         <label class="form-label">Username</label>
+        <!-- appAutofocus: username is the first field on the form so the cursor goes here,
+             the user can start typing their name without clicking anything first -->
+        <!-- appTrimInput: strips accidental spaces so " john " and "john" register as the
+             same username — avoids duplicate-looking accounts that differ only in whitespace -->
         <input type="text" class="auth-input"
           [(ngModel)]="username"
+          appAutofocus
+          appTrimInput
           placeholder="Choose a username"/>
       </div>
 
       <div class="form-group">
         <label class="form-label">Email address</label>
+        <!-- appTrimInput on email only — same reason as login: email addresses don't have
+             meaningful leading/trailing spaces, so we clean them silently on blur -->
         <input type="email" class="auth-input"
           [(ngModel)]="email"
+          appTrimInput
           placeholder="you@example.com"/>
       </div>
 
       <div class="form-group">
         <label class="form-label">Password</label>
+        <!-- No appTrimInput here — passwords with intentional spaces must be preserved exactly,
+             silently trimming them would cause login failures the user can't diagnose -->
         <input type="password" class="auth-input"
           [(ngModel)]="password"
           placeholder="Min. 6 characters"/>

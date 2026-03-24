@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { UserService } from '../../services/user';
+// ToastService replaces the old uploadMessage string that would render inside the template —
+// using toasts means the feedback is consistent with the rest of the app and auto-dismisses
 import { ToastService } from '../../services/toast';
 
 /**
@@ -100,11 +102,15 @@ export class ProfileComponent implements OnInit {
 
       // Update displayed image immediately — result.url is e.g. /profiles/guid.jpg
       this.profileImage = result.url;
+      // Toast gives instant confirmation that the upload worked — replacing the old
+      // uploadMessage binding which required the user to look for text inside the component
       this.toastService.show('Profile picture updated!', 'success');
 
       // Force re-render so the new image appears without requiring a page reload
       this.cdr.detectChanges();
     } catch (error) {
+      // Error toast so the user knows the upload silently failed — without this they'd just
+      // see the old photo and wonder why it didn't update
       this.toastService.show('Failed to upload picture.', 'error');
     }
   }

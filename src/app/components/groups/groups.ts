@@ -2,12 +2,18 @@ import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GroupService, GroupSummary } from '../../services/group';
+// ToastService replaces the old errorMessage string property — one toast call and the
+// user sees the error without needing a dedicated error div in the template
 import { ToastService } from '../../services/toast';
+// TimeAgoPipe is used in the group cards to show "Created 3 days ago" instead of a raw date —
+// matches the same pattern used in the home feed for visual consistency
+import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-groups',
   standalone: true,
-  imports: [CommonModule],
+  // TimeAgoPipe listed in imports so the template can use {{ group.createdAt | timeAgo }}
+  imports: [CommonModule, TimeAgoPipe],
   templateUrl: './groups.html',
   styleUrl: './groups.css'
 })
@@ -19,6 +25,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   private groupService = inject(GroupService);
   private router = inject(Router);
+  // ToastService injected to surface the "unable to refresh" error — the old errorMessage
+  // property required a separate template binding that added visual clutter
   private toastService = inject(ToastService);
 
   async ngOnInit() {
@@ -50,6 +58,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
     try {
       this.groups = await this.groupService.getAllGroups();
     } catch (error) {
+      // Toast explains the degraded state — user still sees something (cached data) and knows
+      // it might be stale. Better than showing an empty list with no explanation.
       this.toastService.show('Unable to refresh groups. Showing cached list.', 'error');
       this.groups = this.groupService.getCachedGroups();
       console.error('Error loading groups:', error);

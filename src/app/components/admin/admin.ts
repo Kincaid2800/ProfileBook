@@ -6,6 +6,8 @@ import { PostService } from '../../services/post';
 import { UserService } from '../../services/user';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group';
+// ToastService replaces the old alert() calls — browser alert() blocks the entire JS thread
+// and looks terrible. Toasts are non-blocking and match the rest of the app's UX.
 import { ToastService } from '../../services/toast';
 
 
@@ -45,9 +47,10 @@ export class AdminComponent implements OnInit {
   private userService = inject(UserService);
   private groupService = inject(GroupService);
   private router = inject(Router);
+  // Injected so every admin action (approve, delete, update, create) can give visible feedback
   private toastService = inject(ToastService);
 
-  
+
    //Lifecycle hook - runs when component initializes
    // Checks if user has Admin role, redirects to home if not
    // Loads all dashboard data if authorized
@@ -78,6 +81,7 @@ export class AdminComponent implements OnInit {
    */
   async approvePost(postId: number) {
     await this.postService.approvePost(postId);
+    // 'success' type gives a green toast — fitting because approving is a positive action
     this.toastService.show('Post approved!', 'success');
     await this.loadAll();
   }
@@ -88,6 +92,8 @@ export class AdminComponent implements OnInit {
    */
   async deleteUser(userId: number) {
     await this.userService.deleteUser(userId);
+    // 'info' rather than 'success' — deleting a user is neutral admin housekeeping,
+    // not a "celebration" moment, so green would feel wrong here
     this.toastService.show('User deleted.', 'info');
     await this.loadAll();
   }
@@ -123,6 +129,8 @@ export class AdminComponent implements OnInit {
       this.cancelEdit();
       await this.loadAll();
     } catch (error) {
+      // Show error toast rather than swallowing the exception silently —
+      // the admin needs to know if their edit didn't save
       this.toastService.show('Failed to update user.', 'error');
     }
   }
@@ -141,6 +149,7 @@ export class AdminComponent implements OnInit {
       this.newGroupDescription = '';
       await this.loadAll();
     } catch (error) {
+      // Catches API errors like duplicate group name — the error toast tells admin something went wrong
       this.toastService.show('Failed to create group.', 'error');
     }
   }
@@ -152,6 +161,7 @@ export class AdminComponent implements OnInit {
   async deleteGroup(groupId: number) {
     try {
       await this.groupService.deleteGroup(groupId);
+      // 'info' here for the same reason as user deletion — neutral action, not a win
       this.toastService.show('Group deleted.', 'info');
       await this.loadAll();
     } catch (error) {

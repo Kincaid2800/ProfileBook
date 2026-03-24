@@ -9,8 +9,14 @@
   <div class="container" style="max-width:680px;">
     <div class="card p-3 mb-4">
       <div class="input-group">
+        <!-- appAutofocus: the search page has one job — let the user search — so we put
+             the cursor here immediately instead of making them click the input manually -->
+        <!-- appTrimInput: fires on blur to strip whitespace from the query, so searching
+             " alice " finds Alice instead of returning zero results -->
         <input type="text" class="form-control"
           [(ngModel)]="searchQuery"
+          appAutofocus
+          appTrimInput
           placeholder="Search for users..."
           (keyup.enter)="searchUsers()"/>
         <button class="btn btn-primary" (click)="searchUsers()">
