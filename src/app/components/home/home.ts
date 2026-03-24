@@ -5,12 +5,17 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { FeedPost, PostComment, PostService } from '../../services/post';
 import { UserService } from '../../services/user';
+
 // ToastService replaces the old inline error string approach —
 // one call here and the notification appears globally without touching the template
+
 import { ToastService } from '../../services/toast';
+
 // TimeAgoPipe converts raw ISO timestamps (e.g. "2026-03-24T10:00:00") to "2 hours ago"
 // so post dates feel natural rather than like log entries
+
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
+
 // AvatarComponent uses ViewEncapsulation.ShadowDom — imported here to demonstrate
 // all three encapsulation modes in one feature: ShadowDom (Avatar), Emulated (Home), None (Toast)
 import { AvatarComponent } from '../avatar/avatar';
@@ -20,9 +25,11 @@ import { AvatarComponent } from '../avatar/avatar';
 // action buttons, character counter, feed layout) and class names like .avatar, .card,
 // .action-btn that also exist in other components (MessagesComponent, GroupsComponent).
 //
+
 // Without Emulated, those styles would collide. Angular solves this by rewriting every
 // CSS rule to include a unique attribute selector it stamps onto the component's DOM:
 //   .avatar { ... }  →  .avatar[_ngcontent-xyz-c0] { ... }
+
 // That suffix makes it impossible for HomeComponent's .avatar to affect any other component,
 // even if they use the exact same class name. This is the style scoping problem SPAs face
 // that plain HTML/CSS never had to deal with — global CSS in a multi-component app is chaos.
@@ -30,6 +37,7 @@ import { AvatarComponent } from '../avatar/avatar';
   selector: 'app-home',
   standalone: true,
   encapsulation: ViewEncapsulation.Emulated,
+
   // TimeAgoPipe declared here in imports so we can use it directly in the template
   // without a separate shared module — standalone components handle their own dependencies
   imports: [CommonModule, FormsModule, TimeAgoPipe, AvatarComponent],

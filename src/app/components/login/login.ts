@@ -3,20 +3,27 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+
 // ToastService handles API-level errors (wrong credentials) — validation errors stay inline
 // in the form because they're directly tied to a specific field, which is better UX than a toast
+
 import { ToastService } from '../../services/toast';
+
 // AutofocusDirective puts the cursor in the email field as soon as the login page loads —
 // saves one click, which matters on a page the user visits every session
+
 import { AutofocusDirective } from '../../directives/autofocus.directive';
+
 // TrimInputDirective cleans email on blur — "  user@test.com  " becomes "user@test.com"
 // before it even reaches the validate() check, preventing false "invalid email" errors
+
 import { TrimInputDirective } from '../../directives/trim-input.directive';
 
 // LoginComponent — Handles user authentication
 // Renders the split-panel login page with email/password form
 // On success: redirects Admin → /admin, regular User → /home
 // Route: /login
+
 @Component({
   selector: 'app-login',
   standalone: true,

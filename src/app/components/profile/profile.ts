@@ -14,6 +14,7 @@ import { ToastService } from '../../services/toast';
  * Uses ChangeDetectorRef to force UI update after async API calls
  * Route: /profile
  */
+
 @Component({
   selector: 'app-profile',
   standalone: true,

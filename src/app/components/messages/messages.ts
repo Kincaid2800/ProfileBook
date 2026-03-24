@@ -210,9 +210,11 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
 
     if (!this.selectedUser.userId) {
+
       // Info toast explains WHY the messages panel is empty — the userId couldn't be resolved
       // because this was a cached conversation name with no ID attached. The fix is simple:
       // search for them once so the system can link the username to a real userId.
+      
       this.toastService.show('Search this user once to link the conversation.', 'info');
       this.messages = [];
       return;

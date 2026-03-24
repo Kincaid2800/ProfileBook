@@ -161,7 +161,6 @@ export class AdminComponent implements OnInit {
   async deleteGroup(groupId: number) {
     try {
       await this.groupService.deleteGroup(groupId);
-      // 'info' here for the same reason as user deletion — neutral action, not a win
       this.toastService.show('Group deleted.', 'info');
       await this.loadAll();
     } catch (error) {

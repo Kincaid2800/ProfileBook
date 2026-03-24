@@ -12,11 +12,6 @@ import { Component, Input, ViewEncapsulation } from '@angular/core';
 //   1. It has no dependency on Bootstrap or any global class — all styles are self-contained
 //   2. It should look identical everywhere it appears regardless of the host component's theme
 //   3. It demonstrates the contrast with Emulated (HomeComponent) and None (ToastComponent)
-//
-// Contrast with the other two modes in this project:
-//   Emulated (HomeComponent)  → Angular fakes scoping with attribute selectors in the DOM
-//   None     (ToastComponent) → no scoping at all, styles injected globally into <head>
-//   ShadowDom (this)          → browser-native hard boundary, true encapsulation
 @Component({
   selector: 'app-avatar',
   standalone: true,
