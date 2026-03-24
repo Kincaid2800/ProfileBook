@@ -18,6 +18,9 @@ import { AutofocusDirective } from '../../directives/autofocus.directive';
 // as a different user than "john", and avoids whitespace-caused login failures later
 
 import { TrimInputDirective } from '../../directives/trim-input.directive';
+// PasswordToggleDirective injects the show/hide eye button at runtime via Renderer2 —
+// the template just gets [appPasswordToggle] on the password input, no extra HTML needed
+import { PasswordToggleDirective } from '../../directives/password-toggle.directive';
 
 // RegisterComponent — new user sign-up
 // Validates all three fields client-side before hitting the API.
@@ -29,7 +32,7 @@ import { TrimInputDirective } from '../../directives/trim-input.directive';
   standalone: true,
   // AutofocusDirective and TrimInputDirective both declared here — standalone components
   // can't rely on a shared module, so each one lists its own directive dependencies
-  imports: [CommonModule, FormsModule, RouterLink, AutofocusDirective, TrimInputDirective],
+  imports: [CommonModule, FormsModule, RouterLink, AutofocusDirective, TrimInputDirective, PasswordToggleDirective],
   templateUrl: './register.html',
   styleUrl: './register.css'
 })

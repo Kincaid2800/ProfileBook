@@ -18,6 +18,9 @@ import { AutofocusDirective } from '../../directives/autofocus.directive';
 // before it even reaches the validate() check, preventing false "invalid email" errors
 
 import { TrimInputDirective } from '../../directives/trim-input.directive';
+// PasswordToggleDirective injects the show/hide eye button at runtime via Renderer2 —
+// the template just gets [appPasswordToggle] on the password input, no extra HTML needed
+import { PasswordToggleDirective } from '../../directives/password-toggle.directive';
 
 // LoginComponent — Handles user authentication
 // Renders the split-panel login page with email/password form
@@ -33,7 +36,8 @@ import { TrimInputDirective } from '../../directives/trim-input.directive';
     RouterLink,
     // Both directives registered here so Angular resolves them when scanning the login template
     AutofocusDirective,
-    TrimInputDirective
+    TrimInputDirective,
+    PasswordToggleDirective
   ],
   templateUrl: './login.html',
   styleUrl: './login.css'

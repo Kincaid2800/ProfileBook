@@ -48,10 +48,13 @@
 
       <div class="form-group">
         <label class="form-label">Password</label>
-        <!-- No appTrimInput here — passwords with intentional spaces must be preserved exactly,
+        <!-- appPasswordToggle injects the eye-icon button at runtime via Renderer2 —
+             no extra wrapper div needed in the template, the directive builds the DOM itself.
+             No appTrimInput here — passwords with intentional spaces must be preserved exactly,
              silently trimming them would cause login failures the user can't diagnose -->
         <input type="password" class="auth-input"
           [(ngModel)]="password"
+          appPasswordToggle
           placeholder="Min. 6 characters"/>
       </div>
 
