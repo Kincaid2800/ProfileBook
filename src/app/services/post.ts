@@ -166,6 +166,12 @@ export class PostService {
     return response.data;
   }
 
+  // deletePost: users can only delete posts they own — the backend enforces this too,
+  // but we gate the button in the UI so other users never even see the option
+  async deletePost(postId: number) {
+    await axios.delete(`${this.apiUrl}/${postId}`, this.getHeaders());
+  }
+
   async uploadFile(file: File) {
     const formData = new FormData();
     formData.append('file', file);

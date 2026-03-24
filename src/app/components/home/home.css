@@ -101,6 +101,18 @@
   color: #d97706;
 }
 
+/* delete button mirrors the report style but uses red — destructive actions should
+   look different from neutral ones so the user doesn't click by accident */
+.action-btn.delete {
+  color: #ef4444;
+}
+
+.action-btn.delete:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
 .action-btn.loading,
 .action-btn:disabled,
 .comment-submit:disabled {

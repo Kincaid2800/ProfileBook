@@ -16,7 +16,9 @@
   <div class="container feed-container">
     <div class="card create-post-card shadow-sm mb-4">
       <div class="d-flex align-items-start mb-3">
-        <div class="avatar me-3">{{ username.charAt(0).toUpperCase() }}</div>
+        <!-- app-avatar uses ViewEncapsulation.ShadowDom — its styles are fully sealed inside
+             the browser's Shadow DOM so nothing in home.css can accidentally override it -->
+        <app-avatar [username]="username"></app-avatar>
         <div class="flex-grow-1">
           <textarea class="form-control" rows="3"
             [(ngModel)]="newPostContent"
@@ -77,7 +79,7 @@
 
     <div *ngFor="let post of posts; trackBy: trackByPostId" class="card post-card shadow-sm p-3">
       <div class="post-header">
-        <div class="avatar">{{ post.username.charAt(0).toUpperCase() }}</div>
+        <app-avatar [username]="post.username"></app-avatar>
         <div class="post-meta">
           <strong>{{ post.username }}</strong>
           <!-- timeAgo pipe converts the ISO timestamp from the API into a human-readable string like "3 hours ago" -->
@@ -108,10 +110,21 @@
           Comments
           <span class="action-count">{{ post.comments.length }}</span>
         </button>
-        <button class="action-btn report ms-auto"
-          (click)="reportUser(post.username, post.userId)">
-          Report
-        </button>
+        <!-- Delete only shown when this post belongs to the logged-in user —
+             comparing post.username against the username loaded from AuthService in ngOnInit.
+             Other users never see this button, so there's no accidental cross-user delete risk. -->
+        @if (post.username === username) {
+          <button class="action-btn delete ms-auto" (click)="deletePost(post.postId)">
+            Delete
+          </button>
+        }
+        <!-- Report is hidden on your own posts — you can't report yourself,
+             and showing both buttons at ms-auto would push them to different sides -->
+        @if (post.username !== username) {
+          <button class="action-btn report ms-auto" (click)="reportUser(post.username, post.userId)">
+            Report
+          </button>
+        }
       </div>
 
       <div *ngIf="post.showComments" class="comments-panel mt-3">

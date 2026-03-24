@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,13 +11,28 @@ import { ToastService } from '../../services/toast';
 // TimeAgoPipe converts raw ISO timestamps (e.g. "2026-03-24T10:00:00") to "2 hours ago"
 // so post dates feel natural rather than like log entries
 import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
+// AvatarComponent uses ViewEncapsulation.ShadowDom — imported here to demonstrate
+// all three encapsulation modes in one feature: ShadowDom (Avatar), Emulated (Home), None (Toast)
+import { AvatarComponent } from '../avatar/avatar';
 
+// ViewEncapsulation.Emulated is Angular's default, but we set it explicitly here
+// to document the decision — HomeComponent has a large stylesheet (post cards, avatars,
+// action buttons, character counter, feed layout) and class names like .avatar, .card,
+// .action-btn that also exist in other components (MessagesComponent, GroupsComponent).
+//
+// Without Emulated, those styles would collide. Angular solves this by rewriting every
+// CSS rule to include a unique attribute selector it stamps onto the component's DOM:
+//   .avatar { ... }  →  .avatar[_ngcontent-xyz-c0] { ... }
+// That suffix makes it impossible for HomeComponent's .avatar to affect any other component,
+// even if they use the exact same class name. This is the style scoping problem SPAs face
+// that plain HTML/CSS never had to deal with — global CSS in a multi-component app is chaos.
 @Component({
   selector: 'app-home',
   standalone: true,
+  encapsulation: ViewEncapsulation.Emulated,
   // TimeAgoPipe declared here in imports so we can use it directly in the template
   // without a separate shared module — standalone components handle their own dependencies
-  imports: [CommonModule, FormsModule, TimeAgoPipe],
+  imports: [CommonModule, FormsModule, TimeAgoPipe, AvatarComponent],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -176,6 +191,23 @@ export class HomeComponent implements OnInit {
 
   toggleComments(post: FeedPost) {
     post.showComments = !post.showComments;
+  }
+
+  async deletePost(postId: number) {
+    // Optimistic removal — pull the post out of the array immediately so the UI
+    // feels instant. If the API call fails, we put it back where it was.
+    const index = this.posts.findIndex(p => p.postId === postId);
+    if (index === -1) return;
+    const [removed] = this.posts.splice(index, 1);
+
+    try {
+      await this.postService.deletePost(postId);
+      this.toastService.show('Post deleted.', 'info');
+    } catch {
+      // Restore the post at its original position so the user doesn't lose it
+      this.posts.splice(index, 0, removed);
+      this.toastService.show('Failed to delete post.', 'error');
+    }
   }
 
   async reportUser(username: string, userId: number) {
