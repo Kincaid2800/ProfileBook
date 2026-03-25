@@ -5,6 +5,7 @@ import { HomeComponent } from '../../../src/app/components/home/home';
 import { AuthService } from '../../../src/app/services/auth';
 import { PostService } from '../../../src/app/services/post';
 import { UserService } from '../../../src/app/services/user';
+import { ToastService } from '../../../src/app/services/toast';
 
 describe('HomeComponent', () => {
   let authServiceMock: {
@@ -17,9 +18,15 @@ describe('HomeComponent', () => {
     createPost: ReturnType<typeof vi.fn>;
     likePost: ReturnType<typeof vi.fn>;
     addComment: ReturnType<typeof vi.fn>;
+    // deletePost added — HomeComponent now supports deleting your own posts
+    deletePost: ReturnType<typeof vi.fn>;
   };
   let userServiceMock: {
     reportUser: ReturnType<typeof vi.fn>;
+  };
+  // ToastService mock — createPost/deletePost show toasts instead of setting a property
+  let toastServiceMock: {
+    show: ReturnType<typeof vi.fn>;
   };
   let router: Router;
   let navigateSpy: ReturnType<typeof vi.spyOn>;
@@ -39,16 +46,24 @@ describe('HomeComponent', () => {
           createdAt: '2026-03-16T00:00:00Z',
           content: 'Hello world',
           likesCount: 0,
+          isLikedByCurrentUser: false,
           comments: [],
+          showComments: false,
+          isLikePending: false,
+          isCommentPending: false,
         },
       ]),
       uploadFile: vi.fn(),
       createPost: vi.fn().mockResolvedValue({}),
-      likePost: vi.fn().mockResolvedValue({}),
-      addComment: vi.fn().mockResolvedValue({}),
+      likePost: vi.fn().mockResolvedValue({ liked: true, likesCount: 1 }),
+      addComment: vi.fn().mockResolvedValue({ commentId: 99, content: 'Nice post', username: 'Alice', createdAt: new Date().toISOString() }),
+      deletePost: vi.fn().mockResolvedValue(undefined),
     };
     userServiceMock = {
       reportUser: vi.fn().mockResolvedValue({}),
+    };
+    toastServiceMock = {
+      show: vi.fn(),
     };
 
     await TestBed.configureTestingModule({
@@ -58,6 +73,7 @@ describe('HomeComponent', () => {
         { provide: AuthService, useValue: authServiceMock },
         { provide: PostService, useValue: postServiceMock },
         { provide: UserService, useValue: userServiceMock },
+        { provide: ToastService, useValue: toastServiceMock },
       ],
     }).compileComponents();
 
@@ -85,7 +101,7 @@ describe('HomeComponent', () => {
     expect(component.posts).toHaveLength(1);
   });
 
-  it('uploads the selected file before creating a post', async () => {
+  it('uploads the selected file before creating a post and shows a success toast', async () => {
     const component = createComponent();
     const file = new File(['image'], 'post.png', { type: 'image/png' });
     postServiceMock.uploadFile.mockResolvedValue({ url: '/uploads/post.png' });
@@ -98,22 +114,51 @@ describe('HomeComponent', () => {
 
     expect(postServiceMock.uploadFile).toHaveBeenCalledWith(file);
     expect(postServiceMock.createPost).toHaveBeenCalledWith('A new post', '/uploads/post.png');
-    expect(component.postMessage).toBe('Post submitted for approval!');
+    // postMessage was replaced with toastService.show() — the property no longer exists
+    expect(toastServiceMock.show).toHaveBeenCalledWith('Post submitted for approval!', 'success');
     expect(component.newPostContent).toBe('');
     expect(component.selectedFile).toBeNull();
     expect(component.filePreview).toBeNull();
     expect(component.fileType).toBe('');
   });
 
-  it('clears comment drafts and refreshes the feed after posting a comment', async () => {
+  it('adds a comment optimistically without reloading the full feed', async () => {
     const component = createComponent();
-    component.commentTexts[42] = 'Nice post';
+    await component.ngOnInit();
 
-    await component.addComment(42, component.commentTexts[42]);
+    const callsBefore = postServiceMock.getAllPosts.mock.calls.length;
+    component.commentTexts[1] = 'Nice post';
 
-    expect(postServiceMock.addComment).toHaveBeenCalledWith(42, 'Nice post');
-    expect(component.commentTexts[42]).toBe('');
-    expect(postServiceMock.getAllPosts).toHaveBeenCalled();
+    await component.addComment(1, component.commentTexts[1]);
+
+    expect(postServiceMock.addComment).toHaveBeenCalledWith(1, 'Nice post');
+    expect(component.commentTexts[1]).toBe('');
+    // addComment is now optimistic — it does NOT reload getAllPosts after each comment
+    expect(postServiceMock.getAllPosts.mock.calls.length).toBe(callsBefore);
+  });
+
+  it('removes the post immediately on delete and shows an info toast', async () => {
+    const component = createComponent();
+    await component.ngOnInit();
+    expect(component.posts).toHaveLength(1);
+
+    await component.deletePost(1);
+
+    expect(postServiceMock.deletePost).toHaveBeenCalledWith(1);
+    expect(component.posts).toHaveLength(0);
+    expect(toastServiceMock.show).toHaveBeenCalledWith('Post deleted.', 'info');
+  });
+
+  it('restores the post if the delete API call fails', async () => {
+    const component = createComponent();
+    await component.ngOnInit();
+    postServiceMock.deletePost.mockRejectedValue(new Error('Server error'));
+
+    await component.deletePost(1);
+
+    // Post should be restored to the array on failure — optimistic rollback
+    expect(component.posts).toHaveLength(1);
+    expect(toastServiceMock.show).toHaveBeenCalledWith('Failed to delete post.', 'error');
   });
 
   it('logs out and returns the user to the login route', () => {
