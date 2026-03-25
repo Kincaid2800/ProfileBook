@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProfileBook</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── PRINT INSTRUCTION BANNER (screen only, hidden when printing) ── */
+    .print-banner {
+      background: #1e40af;
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 13px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+    }
+    .print-banner strong { font-size: 14px; }
+    .print-banner ol { margin: 4px 0 0 18px; }
+    .print-banner li { margin: 2px 0; }
+    .print-banner .dismiss {
+      margin-left: auto;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    @media print {
+      .print-banner { display: none !important; }
+    }
+
+    /* ── PAGE SETTINGS ── */
+    @page {
+      size: A4;
+      margin: 18mm 15mm;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      font-size: 12pt;
+      color: #1a1a1a;
+      background: #fff;
+      line-height: 1.75;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 70px;
+    }
+
+    /* ── TITLE PAGE ── */
+    .title-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-bottom: 3px solid #1877f2;
+      page-break-after: always;
+      padding: 80px 40px;
+    }
+
+    .title-page .logo {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+    .title-page h1 {
+      font-size: 30pt;
+      font-weight: bold;
+      color: #1877f2;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .title-page .tagline {
+      font-size: 13pt;
+      color: #555;
+      font-style: italic;
+      margin-bottom: 50px;
+    }
+
+    .title-meta {
+      margin-top: 50px;
+      border-top: 1px solid #ddd;
+      padding-top: 30px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .title-meta table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .title-meta td {
+      padding: 8px 12px;
+      font-size: 11pt;
+    }
+
+    .title-meta td:first-child {
+      font-weight: bold;
+      color: #444;
+      text-align: right;
+      white-space: nowrap;
+      width: 40%;
+    }
+
+    .title-meta td:last-child {
+      text-align: left;
+      color: #1a1a1a;
+    }
+
+    /* ── TABLE OF CONTENTS ── */
+    .toc-page {
+      page-break-after: always;
+      padding-top: 20px;
+    }
+
+    .toc-page h2 {
+      font-size: 18pt;
+      color: #1877f2;
+      border-bottom: 2px solid #1877f2;
+      padding-bottom: 8px;
+      margin-bottom: 25px;
+    }
+
+    .toc-entry {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 11pt;
+      border-bottom: 1px dotted #ccc;
+    }
+
+    .toc-entry.section {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #1a1a1a;
+    }
+
+    .toc-entry.sub {
+      padding-left: 20px;
+      color: #444;
+      font-weight: normal;
+    }
+
+    /* ── SECTION HEADINGS ── */
+    .section {
+      margin-bottom: 40px;
+    }
+
+    h2.section-title {
+      font-size: 17pt;
+      color: #1877f2;
+      border-bottom: 2px solid #1877f2;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      margin-top: 40px;
+    }
+
+    h3.sub-title {
+      font-size: 13pt;
+      color: #222;
+      margin-top: 24px;
+      margin-bottom: 10px;
+      border-left: 4px solid #1877f2;
+      padding-left: 12px;
+    }
+
+    p {
+      margin-bottom: 14px;
+      text-align: justify;
+    }
+
+    /* ── TABLES ── */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px 0;
+      font-size: 10.5pt;
+    }
+
+    table.data-table th {
+      background: #1877f2;
+      color: #fff;
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table.data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+
+    table.data-table tr:nth-child(even) td {
+      background: #f8faff;
+    }
+
+    /* ── CODE BLOCKS ── */
+    code {
+      font-family: 'Courier New', monospace;
+      font-size: 9.5pt;
+      background: #f3f4f6;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #c0392b;
+    }
+
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-size: 9pt;
+      overflow-x: auto;
+      margin: 12px 0 20px 0;
+      line-height: 1.6;
+    }
+
+    /* ── CALLOUT BOXES ── */
+    .callout {
+      border-left: 4px solid #1877f2;
+      background: #eff6ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 10.5pt;
+    }
+
+    .callout.warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .callout.success {
+      border-left-color: #22c55e;
+      background: #f0fdf4;
+    }
+
+    /* ── BADGE CHIPS ── */
+    .badge {
+      display: inline-block;
+      background: #1877f2;
+      color: #fff;
+      font-size: 8pt;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-family: sans-serif;
+      font-weight: 600;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .badge.green  { background: #22c55e; }
+    .badge.orange { background: #f59e0b; color: #000; }
+    .badge.red    { background: #ef4444; }
+    .badge.gray   { background: #6b7280; }
+
+    /* ── MERMAID DIAGRAM ── */
+    .mermaid-wrap {
+      background: #f8faff;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    /* ── UL / OL ── */
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      .page { padding: 40px 55px; }
+      .title-page { page-break-after: always; }
+      .toc-page   { page-break-after: always; }
+      h2.section-title { page-break-before: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SCREEN-ONLY PRINT GUIDE — disappears completely in the PDF -->
+<div class="print-banner" id="printBanner">
+  <div>
+    <strong>⚠️ Before saving as PDF — 3 steps to remove the URL and date from the printout:</strong>
+    <ol>
+      <li>Press <strong>Ctrl + P</strong> to open the print dialog</li>
+      <li>Click <strong>"More settings"</strong> → scroll down → <strong>uncheck "Headers and footers"</strong></li>
+      <li>Set Margins to <strong>"None"</strong>, then click <strong>Save</strong></li>
+    </ol>
+  </div>
+  <button class="dismiss" onclick="document.getElementById('printBanner').style.display='none'">Got it ✕</button>
+</div>
+
+<div class="page">
+
+  <!-- ═══════════════════════════════════════════════
+       TITLE PAGE
+  ═══════════════════════════════════════════════ -->
+  <div class="title-page">
+    <div class="logo">📖</div>
+    <h1>ProfileBook</h1>
+    <p class="tagline">A Full-Stack Social Networking Platform<br/>Connect. Share. Belong.</p>
+
+    <div class="title-meta">
+      <table>
+        <tr>
+          <td>Submitted By</td>
+          <td><strong>Ketan Kumar</strong></td>
+        </tr>
+        <tr>
+          <td>Batch</td>
+          <td>WIPRO NGA – .Net Full Stack Angular – FY26</td>
+        </tr>
+        <tr>
+          <td>Instructor</td>
+          <td>Mr. Ramesh Nediyadath</td>
+        </tr>
+        <tr>
+          <td>Submission</td>
+          <td>Sprint 2 – March 25, 2026</td>
+        </tr>
+        <tr>
+          <td>GitHub</td>
+          <td><a href="https://github.com/Kincaid2800/ProfileBook">github.com/Kincaid2800/ProfileBook</a></td>
+        </tr>
+        <tr>
+          <td>Tech Stack</td>
+          <td>Angular 21 &nbsp;·&nbsp; ASP.NET Core 10 &nbsp;·&nbsp; SQL Server</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       TABLE OF CONTENTS
+  ═══════════════════════════════════════════════ -->
+  <div class="toc-page">
+    <h2>Table of Contents</h2>
+
+    <div class="toc-entry section"><span>1. Problem Definition and Objectives</span><span>3</span></div>
+
+    <div class="toc-entry section"><span>2. Frontend &amp; Backend Architecture</span><span>4</span></div>
+    <div class="toc-entry sub"><span>2.1 Technology Stack</span><span>4</span></div>
+    <div class="toc-entry sub"><span>2.2 System Architecture Overview</span><span>4</span></div>
+    <div class="toc-entry sub"><span>2.3 Authentication Flow</span><span>5</span></div>
+
+    <div class="toc-entry section"><span>3. Component Breakdown &amp; API Design</span><span>6</span></div>
+    <div class="toc-entry sub"><span>3.1 Angular Component Overview</span><span>6</span></div>
+    <div class="toc-entry sub"><span>3.2 Custom Directives &amp; Pipes</span><span>7</span></div>
+    <div class="toc-entry sub"><span>3.3 ViewEncapsulation</span><span>8</span></div>
+    <div class="toc-entry sub"><span>3.4 Route Guards</span><span>8</span></div>
+    <div class="toc-entry sub"><span>3.5 API Endpoint Reference</span><span>9</span></div>
+
+    <div class="toc-entry section"><span>4. Database Design &amp; Storage Optimization</span><span>11</span></div>
+    <div class="toc-entry sub"><span>4.1 Entity-Relationship Diagram</span><span>11</span></div>
+    <div class="toc-entry sub"><span>4.2 Table Definitions</span><span>12</span></div>
+    <div class="toc-entry sub"><span>4.3 Design &amp; Optimization Notes</span><span>13</span></div>
+
+    <div class="toc-entry section"><span>5. Testing</span><span>14</span></div>
+    <div class="toc-entry section"><span>6. Key Features Summary</span><span>15</span></div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       1. PROBLEM DEFINITION
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">1. Problem Definition and Objectives</h2>
+
+  <p>
+    The idea behind ProfileBook started from a simple observation: most internal communication tools either
+    do too much or too little. Heavy enterprise platforms like Teams or Slack are great for work chat, but
+    they're not designed for community-style interaction — sharing a post, reacting to it, forming interest
+    groups, or having a moderated feed that someone actually curates. At the same time, public social networks
+    like Instagram or Twitter are too open and too noisy for a focused academic or organizational community.
+  </p>
+
+  <p>
+    ProfileBook is my attempt to build something in between — a lightweight social platform where members
+    can express themselves through posts, connect through private messages, join topic-based groups, and
+    trust that the content they see has been reviewed. It's built as a full-stack application with a clear
+    separation between what a regular user can do and what an admin controls.
+  </p>
+
+  <h3 class="sub-title">Project Objectives</h3>
+  <ul>
+    <li>Build a two-role system (User and Admin) where each role has a clearly defined set of capabilities.</li>
+    <li>Enable post creation with text and optional media (images/videos), subject to admin approval before appearing in the feed — so the content environment stays clean.</li>
+    <li>Provide a private messaging system between any two users, with a conversation sidebar that shows recent chats and message previews.</li>
+    <li>Support community groups — users can browse and join; admins can create and remove them.</li>
+    <li>Give users the ability to interact with posts through likes and comments in a way that feels instant, even before the server responds (optimistic UI).</li>
+    <li>Secure every authenticated endpoint with JWT Bearer tokens, and protect every Angular route with functional guards so unauthenticated users are redirected — not just blocked at the API level.</li>
+    <li>Make the codebase demonstrate real Angular concepts: standalone components, custom pipes, custom directives, all three ViewEncapsulation modes, and testable services.</li>
+  </ul>
+
+  <div class="callout success">
+    The project is fully functional end-to-end — registration, login, posting, messaging, grouping, and admin
+    moderation all work through the live API at <code>https://localhost:7193</code>.
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       2. ARCHITECTURE
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">2. Frontend &amp; Backend Architecture</h2>
+
+  <h3 class="sub-title">2.1 Technology Stack</h3>
+
+  <table class="data-table">
+    <tr>
+      <th>Layer</th>
+      <th>Technology</th>
+      <th>Why This Choice</th>
+    </tr>
+    <tr>
+      <td>Frontend Framework</td>
+      <td>Angular 21 + TypeScript 5.9</td>
+      <td>Standalone component model, strong typing, and a well-structured opinionated framework suited for a multi-page SPA with routing and DI.</td>
+    </tr>
+    <tr>
+      <td>UI Styling</td>
+      <td>Bootstrap 5.3 + Custom CSS</td>
+      <td>Bootstrap provides the responsive grid and base components. Every component has its own scoped CSS file for layout and visual identity.</td>
+    </tr>
+    <tr>
+      <td>HTTP Client</td>
+      <td>Axios 1.13</td>
+      <td>Axios has cleaner promise-based syntax than Angular's HttpClient for this project, and it was already familiar from prior work.</td>
+    </tr>
+    <tr>
+      <td>Backend Framework</td>
+      <td>ASP.NET Core 10 Web API</td>
+      <td>Minimal API surface, attribute-based routing, built-in JWT middleware, and EF Core integration make it a natural fit for a REST API backend.</td>
+    </tr>
+    <tr>
+      <td>ORM</td>
+      <td>Entity Framework Core 10</td>
+      <td>Code-first migrations mean the database schema evolves with the models — no raw SQL needed for schema management during development.</td>
+    </tr>
+    <tr>
+      <td>Database</td>
+      <td>SQL Server (SSMS / LocalDB)</td>
+      <td>Relational model fits the data well — users, posts, comments, likes, and messages all have clear foreign key relationships.</td>
+    </tr>
+    <tr>
+      <td>Authentication</td>
+      <td>JWT Bearer Tokens + BCrypt</td>
+      <td>Stateless auth via JWT means the API doesn't need session storage. BCrypt handles password hashing with a configurable cost factor.</td>
+    </tr>
+    <tr>
+      <td>Testing</td>
+      <td>Vitest 4.0 + Angular TestBed</td>
+      <td>Vitest is faster than Jest and integrates well with the Vite build pipeline. Angular TestBed enables realistic component testing with DI.</td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">2.2 System Architecture Overview</h3>
+
+  <p>
+    ProfileBook follows a standard client-server architecture. The Angular SPA runs entirely in the browser
+    and communicates with the ASP.NET Core Web API over HTTPS. There is no server-side rendering — the
+    frontend is a pure single-page application where Angular's router handles all navigation.
+  </p>
+
+  <div class="mermaid-wrap">
+    <div class="mermaid">
+flowchart LR
+    A["Browser\n(Angular SPA)"] -- "HTTPS + JWT Bearer" --> B["ASP.NET Core 10\nWeb API\nlocalhost:7193"]
+    B -- "EF Core queries" --> C["SQL Server\nProfileBookDB"]
+    B -- "wwwroot/uploads" --> D["File System\n(images / videos)"]
+    style A fill:#dbeafe,stroke:#1877f2
+    style B fill:#dcfce7,stroke:#16a34a
+    style C fill:#fef9c3,stroke:#ca8a04
+    style D fill:#fce7f3,stroke:#db2777
+    </div>
+  </div>
+
+  <p>
+    The frontend never talks directly to the database. All data access goes through the REST API. File uploads
+    (post images, profile pictures) are stored in the <code>wwwroot/uploads</code> and <code>wwwroot/profiles</code>
+    directories on the server and served as static files — the Angular app receives a URL path and renders
+    the file using a standard <code>&lt;img&gt;</code> or <code>&lt;video&gt;</code> tag.
+  </p>
+
+  <h3 class="sub-title">2.3 Authentication Flow</h3>
+
+  <p>
+    Authentication is fully stateless. When a user logs in, the API validates their credentials using BCrypt,
+    generates a JWT token containing their user ID, username, and role as claims, and returns it in the
+    response. Angular's <code>AuthService</code> stores the token, username, and role in
+    <code>localStorage</code> — which means the session persists across browser refreshes without any
+    server-side session management.
+  </p>
+
+  <p>
+    Every subsequent API call that requires authentication sends the token as a Bearer header:
+    <code>Authorization: Bearer &lt;token&gt;</code>. The backend's <code>[Authorize]</code> attribute and
+    ASP.NET Core's JWT middleware validate the token on every request. Admin-only endpoints additionally
+    check <code>[Authorize(Roles = "Admin")]</code> against the role claim embedded in the token.
+  </p>
+
+  <p>
+    On the frontend side, Angular route guards (<code>authGuard</code> and <code>adminGuard</code>) check
+    <code>localStorage</code> before any protected route renders — if no token is present, the user is
+    redirected to <code>/login</code> before the component even initialises.
+    JWT tokens are configured to expire after 7 days.
+  </p>
+
+  <div class="callout">
+    <strong>Security note:</strong> Storing JWT in localStorage is a deliberate trade-off here. It's simpler
+    to implement than HttpOnly cookies and sufficient for an academic project. A production deployment would
+    use HttpOnly cookies with CSRF protection instead.
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       3. COMPONENT BREAKDOWN
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">3. Component Breakdown &amp; API Design</h2>
+
+  <h3 class="sub-title">3.1 Angular Component Overview</h3>
+
+  <p>
+    The frontend is built entirely with Angular's standalone component model — there are no NgModules. Every
+    component declares its own imports array, including the directives and pipes it uses. Dependency injection
+    uses Angular's <code>inject()</code> function rather than constructor injection, which is the recommended
+    pattern for standalone components.
+  </p>
+
+  <table class="data-table">
+    <tr>
+      <th>Component</th>
+      <th>Route</th>
+      <th>Guard</th>
+      <th>Responsibility</th>
+    </tr>
+    <tr>
+      <td><code>LoginComponent</code></td>
+      <td>/login</td>
+      <td>None</td>
+      <td>Email/password form, client-side validation, role-based redirect (Admin → /admin, User → /home). API errors shown as toasts; validation errors shown inline.</td>
+    </tr>
+    <tr>
+      <td><code>RegisterComponent</code></td>
+      <td>/register</td>
+      <td>None</td>
+      <td>Three-field signup form (username, email, password). Validates all fields before hitting the API, then redirects to /login after a 2-second success toast.</td>
+    </tr>
+    <tr>
+      <td><code>HomeComponent</code></td>
+      <td>/home</td>
+      <td>authGuard</td>
+      <td>Main feed — create posts with media, like/unlike, comment, delete own posts. Optimistic UI on likes and comments. Character counter (500 char limit) on post textarea.</td>
+    </tr>
+    <tr>
+      <td><code>ProfileComponent</code></td>
+      <td>/profile</td>
+      <td>authGuard</td>
+      <td>Displays user info, allows profile picture upload via multipart form. Uses <code>ChangeDetectorRef</code> to force Angular to re-render after the async image URL update.</td>
+    </tr>
+    <tr>
+      <td><code>MessagesComponent</code></td>
+      <td>/messages</td>
+      <td>authGuard</td>
+      <td>DM system. Shows recent conversations in a sidebar (cached in localStorage), opens a chat panel on user selection. Auto-refreshes every 8 seconds and on window focus.</td>
+    </tr>
+    <tr>
+      <td><code>SearchComponent</code></td>
+      <td>/search</td>
+      <td>authGuard</td>
+      <td>Search users by username, view their profile, report them, or navigate to message them directly. Search input gets autofocus on page load.</td>
+    </tr>
+    <tr>
+      <td><code>GroupsComponent</code></td>
+      <td>/groups</td>
+      <td>authGuard</td>
+      <td>Browse all groups, join/leave with an optimistic toggle. Groups cached in localStorage as fallback. Auto-refreshes every 10 seconds.</td>
+    </tr>
+    <tr>
+      <td><code>AdminComponent</code></td>
+      <td>/admin</td>
+      <td>adminGuard</td>
+      <td>Tab-based dashboard — pending posts (approve), user management (view/edit/delete), group management (create/delete), reports review. All actions use typed toasts for feedback.</td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">3.2 Custom Directives &amp; Pipes</h3>
+
+  <p>
+    One of the deliberate goals of this sprint was to move repeated DOM behaviour into reusable directives
+    rather than duplicating logic across components. Three custom directives were built:
+  </p>
+
+  <table class="data-table">
+    <tr>
+      <th>Directive / Pipe</th>
+      <th>Selector</th>
+      <th>What It Does &amp; Why</th>
+    </tr>
+    <tr>
+      <td><strong>AutofocusDirective</strong></td>
+      <td><code>appAutofocus</code></td>
+      <td>
+        Implements <code>AfterViewInit</code> and calls <code>nativeElement.focus()</code> inside a
+        <code>setTimeout(0)</code>. The timeout is necessary because Angular's SPA router doesn't trigger
+        a full page reload — native HTML <code>autofocus</code> only fires on initial browser load, not
+        on route changes. Used on: login email, register username, search input.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>TrimInputDirective</strong></td>
+      <td><code>appTrimInput</code></td>
+      <td>
+        Listens to the <code>blur</code> event via <code>@HostListener</code>. On blur, trims leading/trailing
+        whitespace from the input value and dispatches a native <code>input</code> event to sync Angular's
+        <code>ngModel</code>. Deliberately not applied to password fields — silently trimming a password
+        could break logins for users who intentionally use spaces.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>PasswordToggleDirective</strong></td>
+      <td><code>appPasswordToggle</code></td>
+      <td>
+        Uses <code>Renderer2</code> (Angular's platform-safe DOM API) to wrap the password input in a
+        relative-positioned container and inject an SVG eye-icon button. Clicking the button swaps
+        <code>type="password"</code> ↔ <code>type="text"</code> and flips the icon. <code>Renderer2</code>
+        was chosen over direct DOM manipulation because it works in SSR and Web Worker environments.
+        Applied on: login password, register password.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>TimeAgoPipe</strong></td>
+      <td><code>timeAgo</code></td>
+      <td>
+        A standalone <code>@Pipe</code> that converts ISO date strings into relative labels like
+        "just now", "5 mins ago", "yesterday", "3 weeks ago". Uses <code>Math.floor</code> throughout
+        so times always round down (you never say "1 hour ago" when only 59 minutes have passed).
+        Handles <code>null</code>, <code>undefined</code>, and invalid dates gracefully. Used in: post
+        timestamps on the feed, conversation list in messages, group creation dates.
+      </td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">3.3 ViewEncapsulation — All Three Modes</h3>
+
+  <p>
+    In a plain HTML website, all CSS is global. In an Angular SPA where multiple components render
+    simultaneously, global CSS causes style collisions — a <code>.card</code> rule in one component bleeds
+    into every other component that uses the same class name. ViewEncapsulation is Angular's solution to
+    this problem. ProfileBook deliberately demonstrates all three available modes:
+  </p>
+
+  <table class="data-table">
+    <tr>
+      <th>Component</th>
+      <th>Mode</th>
+      <th>Reasoning</th>
+    </tr>
+    <tr>
+      <td><code>HomeComponent</code></td>
+      <td><span class="badge">Emulated</span></td>
+      <td>
+        Default mode, explicitly set to document the decision. Angular rewrites CSS rules to include a
+        unique attribute selector (e.g. <code>.avatar[_ngcontent-xyz]</code>) so HomeComponent's styles
+        cannot affect MessagesComponent or GroupsComponent, which use similar class names like
+        <code>.card</code> and <code>.avatar</code>.
+      </td>
+    </tr>
+    <tr>
+      <td><code>ToastComponent</code></td>
+      <td><span class="badge red">None</span></td>
+      <td>
+        Toast is a global overlay — <code>position: fixed</code>, <code>z-index: 9999</code>, anchored to
+        the viewport. Its styles are global by design. Using <code>None</code> injects the CSS into the
+        document <code>&lt;head&gt;</code> without any attribute scoping. No other component uses class
+        names like <code>.toast-item</code> or <code>.toast-container</code>, so there's no collision risk.
+      </td>
+    </tr>
+    <tr>
+      <td><code>AvatarComponent</code></td>
+      <td><span class="badge green">ShadowDom</span></td>
+      <td>
+        A self-contained letter-avatar component extracted specifically to demonstrate native Shadow DOM.
+        The browser creates a hard style boundary: Bootstrap and any parent CSS cannot reach inside this
+        component. The avatar looks identical everywhere it appears because nothing external can override
+        its styles. Uses <code>:host</code> to style the outer element from within the Shadow DOM.
+      </td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">3.4 Route Guards (Session Handling)</h3>
+
+  <p>
+    Two functional guards protect the application's routes. They use Angular's <code>CanActivateFn</code>
+    type — the modern recommended approach over class-based guards:
+  </p>
+
+  <ul>
+    <li>
+      <strong>authGuard</strong> — checks <code>AuthService.isLoggedIn()</code> (which reads
+      <code>localStorage</code> for a JWT token). If no token exists, it returns
+      <code>router.createUrlTree(['/login'])</code> — a <code>UrlTree</code> return is preferred over
+      <code>router.navigate() + false</code> because Angular can cancel the original navigation atomically,
+      preventing a brief flash of the protected route.
+    </li>
+    <li>
+      <strong>adminGuard</strong> — first checks <code>isLoggedIn()</code>, then checks
+      <code>isAdmin()</code>. A logged-in regular user who navigates to <code>/admin</code> is redirected
+      to <code>/home</code> rather than <code>/login</code> — because they are authenticated, just not
+      authorised.
+    </li>
+  </ul>
+
+  <div class="callout warning">
+    Before adding these guards, any user who knew the URL could navigate directly to <code>/home</code> or
+    <code>/admin</code> without logging in. The API would reject data requests, but the page shell would
+    still render. Guards close this gap at the routing layer.
+  </div>
+
+  <h3 class="sub-title">3.5 API Endpoint Reference</h3>
+
+  <table class="data-table">
+    <tr>
+      <th>Method</th>
+      <th>Endpoint</th>
+      <th>Auth</th>
+      <th>Description</th>
+    </tr>
+    <tr><td colspan="4" style="background:#f0f4ff;font-weight:bold;padding:7px 12px;">Auth Controller</td></tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Auth/register</code></td>
+      <td>None</td>
+      <td>Creates a new user account. Checks for duplicate email, hashes password with BCrypt before storing.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Auth/login</code></td>
+      <td>None</td>
+      <td>Validates credentials, returns <code>{token, username, role}</code>. JWT expires in 7 days.</td>
+    </tr>
+    <tr><td colspan="4" style="background:#f0f4ff;font-weight:bold;padding:7px 12px;">User Controller</td></tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/User</code></td>
+      <td>Admin</td>
+      <td>Returns all registered users. Admin-only.</td>
+    </tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/User/profile</code></td>
+      <td>Bearer</td>
+      <td>Returns the authenticated user's own profile (extracts userId from JWT claims).</td>
+    </tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/User/search?username=</code></td>
+      <td>Bearer</td>
+      <td>Partial username search using <code>.Contains()</code>.</td>
+    </tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/User/{id}</code></td>
+      <td>Bearer</td>
+      <td>Returns a single user's public profile by ID.</td>
+    </tr>
+    <tr>
+      <td><span class="badge orange">PUT</span></td>
+      <td><code>/api/User/{id}</code></td>
+      <td>Admin</td>
+      <td>Updates username and email. Admin-only.</td>
+    </tr>
+    <tr>
+      <td><span class="badge red">DELETE</span></td>
+      <td><code>/api/User/{id}</code></td>
+      <td>Admin</td>
+      <td>Deletes user and cascades removal of their posts, likes, comments, messages, and reports.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/User/report</code></td>
+      <td>Bearer</td>
+      <td>Submits a misconduct report against another user.</td>
+    </tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/User/reports</code></td>
+      <td>Admin</td>
+      <td>Returns all submitted reports with reporter and reported usernames.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/User/upload-profile-picture</code></td>
+      <td>Bearer</td>
+      <td>Saves profile image to <code>wwwroot/profiles/</code>, updates user record.</td>
+    </tr>
+    <tr><td colspan="4" style="background:#f0f4ff;font-weight:bold;padding:7px 12px;">Post Controller</td></tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/Post</code></td>
+      <td>None</td>
+      <td>Returns all Approved posts with their likes and comments, newest first.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Post</code></td>
+      <td>Bearer</td>
+      <td>Creates a post with <code>status = "Pending"</code> — requires admin approval before appearing in feed.</td>
+    </tr>
+    <tr>
+      <td><span class="badge red">DELETE</span></td>
+      <td><code>/api/Post/{id}</code></td>
+      <td>Bearer</td>
+      <td>Deletes own post. Frontend enforces ownership check; backend enforces it via JWT userId claim.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Post/{id}/like</code></td>
+      <td>Bearer</td>
+      <td>Toggles like — adds if not already liked, removes if already liked.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Post/{id}/comment</code></td>
+      <td>Bearer</td>
+      <td>Adds a comment to a post.</td>
+    </tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/Post/pending</code></td>
+      <td>Admin</td>
+      <td>Returns posts awaiting admin approval.</td>
+    </tr>
+    <tr>
+      <td><span class="badge orange">PUT</span></td>
+      <td><code>/api/Post/{id}/approve</code></td>
+      <td>Admin</td>
+      <td>Sets post status to "Approved", making it visible in the public feed.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Post/upload</code></td>
+      <td>Bearer</td>
+      <td>Accepts multipart file upload (image/video), saves to <code>wwwroot/uploads/</code> with a GUID filename.</td>
+    </tr>
+    <tr><td colspan="4" style="background:#f0f4ff;font-weight:bold;padding:7px 12px;">Message Controller</td></tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/Message</code></td>
+      <td>Bearer</td>
+      <td>Returns all messages sent to or received by the current user.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Message</code></td>
+      <td>Bearer</td>
+      <td>Sends a message to another user by userId.</td>
+    </tr>
+    <tr><td colspan="4" style="background:#f0f4ff;font-weight:bold;padding:7px 12px;">Group Controller</td></tr>
+    <tr>
+      <td><span class="badge">GET</span></td>
+      <td><code>/api/Group</code></td>
+      <td>Bearer</td>
+      <td>Returns all groups with member count and whether the current user is a member.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Group</code></td>
+      <td>Admin</td>
+      <td>Creates a new group. Admin-only.</td>
+    </tr>
+    <tr>
+      <td><span class="badge green">POST</span></td>
+      <td><code>/api/Group/{id}/join</code></td>
+      <td>Bearer</td>
+      <td>Toggles membership — joins if not a member, leaves if already a member.</td>
+    </tr>
+    <tr>
+      <td><span class="badge red">DELETE</span></td>
+      <td><code>/api/Group/{id}</code></td>
+      <td>Admin</td>
+      <td>Deletes a group and all its membership records.</td>
+    </tr>
+  </table>
+
+
+  <!-- ═══════════════════════════════════════════════
+       4. DATABASE
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">4. Database Design &amp; Storage Optimization</h2>
+
+  <h3 class="sub-title">4.1 Entity-Relationship Diagram</h3>
+
+  <p>
+    The database has 8 tables, managed through Entity Framework Core code-first migrations.
+    The schema went through 3 migration versions during development:
+    <code>InitialCreate</code> → <code>AddGroups</code> → <code>AddProfileImage</code>.
+  </p>
+
+  <div class="mermaid-wrap">
+    <div class="mermaid">
+erDiagram
+    USER ||--o{ POST : creates
+    USER ||--o{ COMMENT : writes
+    POST ||--o{ COMMENT : contains
+    USER ||--o{ LIKE : gives
+    POST ||--o{ LIKE : receives
+    USER ||--o{ MESSAGE : sends
+    USER ||--o{ MESSAGE : receives
+    USER ||--o{ REPORT : submits
+    USER ||--o{ REPORT : is_reported_in
+    USER ||--o{ GROUP_MEMBER : joins
+    GROUP ||--o{ GROUP_MEMBER : contains
+
+    USER {
+        int userId PK
+        string username
+        string email
+        string passwordHash
+        string role
+        string profileImage
+        datetime createdAt
+    }
+
+    POST {
+        int postId PK
+        int userId FK
+        string content
+        string postImage
+        string status
+        datetime createdAt
+    }
+
+    COMMENT {
+        int commentId PK
+        int postId FK
+        int userId FK
+        string content
+        datetime createdAt
+    }
+
+    LIKE {
+        int likeId PK
+        int postId FK
+        int userId FK
+        datetime createdAt
+    }
+
+    MESSAGE {
+        int messageId PK
+        int senderId FK
+        int receiverId FK
+        string content
+        datetime sentAt
+    }
+
+    REPORT {
+        int reportId PK
+        int reportingUserId FK
+        int reportedUserId FK
+        string reason
+        datetime createdAt
+    }
+
+    GROUP {
+        int groupId PK
+        string name
+        string description
+        datetime createdAt
+    }
+
+    GROUP_MEMBER {
+        int groupMemberId PK
+        int groupId FK
+        int userId FK
+        datetime joinedAt
+    }
+    </div>
+  </div>
+
+  <h3 class="sub-title">4.2 Table Definitions</h3>
+
+  <table class="data-table">
+    <tr>
+      <th>Table</th>
+      <th>Key Fields</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td><strong>Users</strong></td>
+      <td><code>userId</code> PK, <code>email</code> (unique), <code>role</code></td>
+      <td>Core identity table. Role field drives both API authorization and Angular route guard logic.</td>
+    </tr>
+    <tr>
+      <td><strong>Posts</strong></td>
+      <td><code>postId</code> PK, <code>userId</code> FK, <code>status</code></td>
+      <td>Content table. The <code>status</code> field ("Pending" / "Approved") implements the moderation workflow without needing a separate approval table.</td>
+    </tr>
+    <tr>
+      <td><strong>Comments</strong></td>
+      <td><code>commentId</code> PK, <code>postId</code> FK, <code>userId</code> FK</td>
+      <td>Text responses to posts. Two FK relationships link each comment to both its author and its parent post.</td>
+    </tr>
+    <tr>
+      <td><strong>Likes</strong></td>
+      <td><code>likeId</code> PK, <code>postId</code> FK, <code>userId</code> FK</td>
+      <td>Reaction table. The toggle-like endpoint checks for existence of a (postId, userId) pair to decide whether to add or remove.</td>
+    </tr>
+    <tr>
+      <td><strong>Messages</strong></td>
+      <td><code>messageId</code> PK, <code>senderId</code> FK → Users, <code>receiverId</code> FK → Users</td>
+      <td>DM table. Two foreign keys to the same Users table represent the sender and receiver. The API filters by <code>senderId OR receiverId = currentUserId</code> to return a full conversation history.</td>
+    </tr>
+    <tr>
+      <td><strong>Reports</strong></td>
+      <td><code>reportId</code> PK, <code>reportingUserId</code> FK, <code>reportedUserId</code> FK</td>
+      <td>Abuse reporting. Also uses two FK references to Users to distinguish the reporter from the reported party.</td>
+    </tr>
+    <tr>
+      <td><strong>Groups</strong></td>
+      <td><code>groupId</code> PK, <code>name</code>, <code>description</code></td>
+      <td>Community groups created by admins. Membership is tracked separately in GroupMembers.</td>
+    </tr>
+    <tr>
+      <td><strong>GroupMembers</strong></td>
+      <td><code>groupMemberId</code> PK, <code>groupId</code> FK, <code>userId</code> FK</td>
+      <td>Junction table for the many-to-many relationship between Users and Groups. Includes a <code>joinedAt</code> timestamp for membership history.</td>
+    </tr>
+  </table>
+
+  <h3 class="sub-title">4.3 Design &amp; Optimization Notes</h3>
+
+  <ul>
+    <li>
+      <strong>Cascade deletes in code, not in database:</strong> When an admin deletes a user, the
+      <code>UserController.DeleteUser</code> method manually removes that user's posts, likes, comments,
+      messages, and reports before deleting the user record. This is done explicitly in C# rather than
+      relying on database CASCADE DELETE — which makes the behaviour visible, predictable, and easy to
+      adjust if requirements change.
+    </li>
+    <li>
+      <strong>Status-based moderation (no soft delete):</strong> Posts use a <code>status</code> string
+      field ("Pending" / "Approved") rather than an <code>isDeleted</code> flag. This keeps the schema
+      simple — the feed query just filters <code>WHERE status = 'Approved'</code>, and pending posts
+      remain visible to the admin for review.
+    </li>
+    <li>
+      <strong>Explicit <code>.Include()</code> over lazy loading:</strong> All feed queries use
+      <code>.Include(p => p.User)</code>, <code>.Include(p => p.Comments).ThenInclude(c => c.User)</code>,
+      and <code>.Include(p => p.Likes)</code>. Lazy loading is disabled to prevent N+1 query problems — a
+      single LINQ query produces one SQL SELECT with JOINs rather than one query per post.
+    </li>
+    <li>
+      <strong>GUID filenames on uploads:</strong> Uploaded files are saved as
+      <code>{Guid.NewGuid()}{extension}</code>. This prevents filename collisions between users and makes
+      it impossible to guess or enumerate other users' uploaded files by filename.
+    </li>
+    <li>
+      <strong>BCrypt cost factor:</strong> Passwords are hashed with BCrypt using its default cost factor
+      (11). This makes each hash computation intentionally slow — fast enough for a login, slow enough to
+      make brute-force attacks infeasible even if the database is compromised.
+    </li>
+    <li>
+      <strong>localStorage caching on the frontend:</strong> Groups and recent message conversations are
+      cached in localStorage so the UI can render immediately on page load while the API call is in flight.
+      The cache is refreshed on every successful API response and used as a fallback if the API fails.
+    </li>
+  </ul>
+
+
+  <!-- ═══════════════════════════════════════════════
+       5. TESTING
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">5. Testing</h2>
+
+  <p>
+    Tests are written using Vitest with Angular TestBed. The test suite is organized into unit tests for
+    services and components, and end-to-end flow tests that simulate full user journeys.
+  </p>
+
+  <table class="data-table">
+    <tr>
+      <th>File</th>
+      <th>Type</th>
+      <th>What's Covered</th>
+    </tr>
+    <tr>
+      <td><code>auth.service.spec.ts</code></td>
+      <td>Unit</td>
+      <td>Register API call, login + localStorage persistence, admin role detection, logout clears all stored data.</td>
+    </tr>
+    <tr>
+      <td><code>post.service.spec.ts</code></td>
+      <td>Unit</td>
+      <td>getAllPosts normalization (handles both camelCase and PascalCase API responses), createPost, likePost toggle.</td>
+    </tr>
+    <tr>
+      <td><code>user.service.spec.ts</code></td>
+      <td>Unit</td>
+      <td>searchUsers, reportUser, uploadProfilePicture — verifies correct Authorization headers and request payloads.</td>
+    </tr>
+    <tr>
+      <td><code>login.component.spec.ts</code></td>
+      <td>Component</td>
+      <td>Validates that empty/invalid inputs block API calls, successful login redirects to /home or /admin based on role, failed login shows toast.</td>
+    </tr>
+    <tr>
+      <td><code>register.component.spec.ts</code></td>
+      <td>Component</td>
+      <td>Validates all three fields, successful registration shows success toast and schedules /login redirect, duplicate email shows error toast.</td>
+    </tr>
+    <tr>
+      <td><code>home.component.spec.ts</code></td>
+      <td>Component</td>
+      <td>Feed loads on init, file upload before createPost, comment added optimistically without reloading feed, deletePost removes post and shows info toast, delete rollback on API failure.</td>
+    </tr>
+    <tr>
+      <td><code>auth-flow.e2e.spec.ts</code></td>
+      <td>E2E</td>
+      <td>Full registration → login → home redirect flow.</td>
+    </tr>
+    <tr>
+      <td><code>home-navigation.e2e.spec.ts</code></td>
+      <td>E2E</td>
+      <td>Logged-in user navigates between home, messages, profile, groups without losing session.</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    Run all tests with: <code>npm test</code> from the <code>profilebook/</code> directory.
+    Vitest runs in watch mode by default; add <code>--run</code> for a single CI-style pass.
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       6. KEY FEATURES SUMMARY
+  ═══════════════════════════════════════════════ -->
+  <h2 class="section-title">6. Key Features Summary</h2>
+
+  <table class="data-table">
+    <tr>
+      <th>Feature</th>
+      <th>Angular Concept Demonstrated</th>
+    </tr>
+    <tr>
+      <td>Toast Notification System</td>
+      <td>Singleton service pattern, <code>@Injectable({ providedIn: 'root' })</code>, <code>filter()</code> for safe array mutation</td>
+    </tr>
+    <tr>
+      <td>TimeAgo Pipe</td>
+      <td>Custom standalone <code>@Pipe</code>, <code>PipeTransform</code>, null safety</td>
+    </tr>
+    <tr>
+      <td>Autofocus Directive</td>
+      <td><code>AfterViewInit</code>, <code>ElementRef</code>, <code>setTimeout(0)</code> for SPA DOM timing</td>
+    </tr>
+    <tr>
+      <td>Trim Input Directive</td>
+      <td><code>@HostListener</code>, native event dispatch to sync <code>ngModel</code></td>
+    </tr>
+    <tr>
+      <td>Password Show/Hide Toggle</td>
+      <td><code>Renderer2</code> for platform-safe DOM manipulation, programmatic DOM building in <code>ngOnInit</code></td>
+    </tr>
+    <tr>
+      <td>ViewEncapsulation (all 3)</td>
+      <td>Emulated (HomeComponent), None (ToastComponent), ShadowDom (AvatarComponent)</td>
+    </tr>
+    <tr>
+      <td>Character Counter on Posts</td>
+      <td>Three-state class binding, <code>[maxlength]</code>, <code>[disabled]</code> with compound expression</td>
+    </tr>
+    <tr>
+      <td>Optimistic UI (likes, comments, group join, delete post)</td>
+      <td>Immediate local state update, rollback in <code>catch</code> block, pending state sets</td>
+    </tr>
+    <tr>
+      <td>Route Guards</td>
+      <td><code>CanActivateFn</code>, <code>UrlTree</code> return, role-based redirect logic</td>
+    </tr>
+    <tr>
+      <td>Admin Moderation Workflow</td>
+      <td>Status-field moderation, role-based <code>[Authorize]</code> on API, tab UI in admin dashboard</td>
+    </tr>
+    <tr>
+      <td>File Uploads (posts + profile)</td>
+      <td>Multipart form data, GUID filenames, <code>FileReader</code> for in-browser preview before upload</td>
+    </tr>
+    <tr>
+      <td>localStorage Caching</td>
+      <td>Immediate render from cache, background refresh, graceful fallback on API failure</td>
+    </tr>
+  </table>
+
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default' });
+</script>
+</body>
+</html>
